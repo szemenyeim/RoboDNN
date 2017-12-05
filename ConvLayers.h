@@ -51,4 +51,20 @@ public:
     void print();
 };
 
+class FCLayer : public Layer
+{
+private:
+    float *weights;
+    float *bias;
+    bool hasBias;
+public:
+    FCLayer(int32_t _inCh, int32_t _outCh, ACTIVATION _activation, bool _hasBias);
+    FCLayer();
+    void forward();
+    bool HasBias();
+    int32_t getWorkSpaceSize();
+    bool loadWeights( std::ifstream &file );
+    void print();
+};
+
 #endif /* ConvLayers_h */

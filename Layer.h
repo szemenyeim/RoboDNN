@@ -17,6 +17,7 @@
 typedef enum {
     CONV=0,
     TRCONV,
+    FC,
     BATCHNORM,
     MAXPOOL,
     AVGPOOL,

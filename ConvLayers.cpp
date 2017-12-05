@@ -194,3 +194,76 @@ bool TransposedConvLayer::HasBias()
 {
     return hasBias;
 }
+
+FCLayer::FCLayer(int32_t _inCh, int32_t _outCh, ACTIVATION _activation, bool _hasBias)
+{
+    // Setup layer variables
+    type = FC;
+    outCh = _outCh;
+    inCh = _inCh;
+    activation = _activation;
+    cropRows = 0;
+    
+    inW = inH = outW = outH = 1;
+    
+    
+    // Reserve weights and output
+    weights =  new float[outCh*inCh];
+    if (hasBias) {
+        bias = new float[outCh];
+    }
+    outputs = new float[outCh];
+}
+
+FCLayer::FCLayer()
+{
+    delete [] weights;
+    if (hasBias) {
+        delete [] bias;
+    }
+    delete [] outputs;
+}
+
+void FCLayer::forward()
+{
+    if (inputs)
+    {
+        // Fill output with 0
+        fill(getN(), 0.f, outputs);
+        
+        // Convolution as matrix multiplication
+        gemm(false,false,outCh,1,inCh,1,weights,inCh,inputs,1,1,outputs,1);
+        
+        // Add bias
+        if (hasBias) {
+            addBias(outputs, bias, outCh, 1);
+        }
+        
+        // Apply activation function
+        activate(outputs, currOutH*outW*outCh, activation);
+    }
+}
+
+bool FCLayer::loadWeights( std::ifstream &file )
+{
+    int32_t wCnt = inCh*outCh;
+    
+    // Load weights and bias (if the layer has bias)
+    return loadweights_bin(file, wCnt, weights) && (!hasBias || loadweights_bin(file, outCh, bias));
+}
+
+void FCLayer::print()
+{
+    // Print parameters in a nice aligned way
+    std::cout << "Fully Connected" << std::setw(7) << "(" << std::setw(3) << inCh << ")->(" << std::setw(3) << outCh << ")" << " -> " << act2string(activation) << std::endl;
+}
+
+int32_t FCLayer::getWorkSpaceSize()
+{
+    return 0;
+}
+
+bool FCLayer::HasBias()
+{
+    return hasBias;
+}
