@@ -1,12 +1,12 @@
 //
-//  NaoDNN.cpp
+//  RoboDNN.cpp
 //  ConvNet
 //
 //  Created by Márton Szemenyei on 2017. 09. 28..
 //  Copyright © 2017. Márton Szemenyei. All rights reserved.
 //
 
-#include "NaoDNN.h"
+#include "RoboDNN.h"
 #include "Utils.h"
 #include "ConvLayers.h"
 #include "PoolLayers.h"

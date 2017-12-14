@@ -1,13 +1,13 @@
 //
-//  NaoDNN.h
+//  RoboDNN.h
 //  ConvNet
 //
 //  Created by Márton Szemenyei on 2017. 09. 28..
 //  Copyright © 2017. Márton Szemenyei. All rights reserved.
 //
 
-#ifndef NaoDNN_h
-#define NaoDNN_h
+#ifndef RoboDNN_h
+#define RoboDNN_h
 
 #include <vector>
 #include <string>
@@ -64,4 +64,4 @@ public:
 
 
 
-#endif /* NaoDNN_h */
+#endif /* RoboDNN_h */
