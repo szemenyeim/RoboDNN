@@ -11,13 +11,14 @@
 #include "BLAS.h"
 #include <cmath>
 
-ShortcutLayer::ShortcutLayer(int32_t _h, int32_t _w, int32_t _outCh, int32_t _layerIndex, ACTIVATION _activation)
+ShortcutLayer::ShortcutLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, int32_t _layerIndex, ACTIVATION _activation)
 {
     // Setup parameters
     type = SHORTCUT;
     inW = outW = _w;
     inH = outH = _h;
-    inCh = outCh = _outCh;
+    inCh = _inch;
+    outCh = _outCh;
     layerIndex = _layerIndex;
     activation = _activation;
     cropRows = 0;

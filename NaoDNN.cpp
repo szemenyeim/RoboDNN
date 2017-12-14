@@ -152,7 +152,8 @@ void Network::constructLayer( const std::vector<std::string> & settings )
             break;
         case SHORTCUT:
             if (static_cast<int32_t>(layers.size()) > layerIndex) {
-                layers.push_back( new ShortcutLayer(inH, inW, inCh, layerIndex, activation) );
+                int32_t _channelCnt = std::min( inCh, layers[layerIndex]->getOutCh())
+                layers.push_back( new ShortcutLayer(inH, inW, _channelCnt, inCh, layerIndex, activation) );
                 // Setting inplace input (this will also be the output)
                 static_cast<ShortcutLayer*>(layers.back())->setInplaceInput(input);
                 // Connect the other layer

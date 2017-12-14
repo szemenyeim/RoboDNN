@@ -15,7 +15,7 @@ class ShortcutLayer : public Layer
 private:
     int32_t layerIndex;
 public:
-    ShortcutLayer(int32_t _h, int32_t _w, int32_t _outCh, int32_t _layerIndex, ACTIVATION _activation);
+    ShortcutLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, int32_t _layerIndex, ACTIVATION _activation);
     ~ShortcutLayer();
     void forward();
     bool loadWeights( std::ifstream& ) {return true;}
