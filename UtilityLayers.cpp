@@ -17,7 +17,7 @@ ShortcutLayer::ShortcutLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _out
     type = SHORTCUT;
     inW = outW = _w;
     inH = outH = _h;
-    inCh = _inch;
+    inCh = _inCh;
     outCh = _outCh;
     layerIndex = _layerIndex;
     activation = _activation;

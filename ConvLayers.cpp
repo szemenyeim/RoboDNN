@@ -240,7 +240,7 @@ void FCLayer::forward()
         }
         
         // Apply activation function
-        activate(outputs, currOutH*outW*outCh, activation);
+        activate(outputs, outH*outW*outCh, activation);
     }
 }
 
