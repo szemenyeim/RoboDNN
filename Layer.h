@@ -14,6 +14,7 @@
 #include <string>
 #include "Activations.h"
 
+// Layer Types
 typedef enum {
     CONV=0,
     TRCONV,
