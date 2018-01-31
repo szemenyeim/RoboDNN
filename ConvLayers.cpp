@@ -201,6 +201,7 @@ FCLayer::FCLayer(int32_t _inCh, int32_t _outCh, ACTIVATION _activation, bool _ha
     type = FC;
     outCh = _outCh;
     inCh = _inCh;
+    hasBias = _hasBias;
     activation = _activation;
     cropRows = 0;
     

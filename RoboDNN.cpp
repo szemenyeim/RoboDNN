@@ -122,6 +122,10 @@ void Network::constructLayer( const std::vector<std::string> & settings )
             layers.push_back( new TransposedConvLayer(inH, inW, inCh, filters, size, stride, pad, outPad, activation, hasBias) );
             layers.back()->setInput(input);
             break;
+        case FC:
+            layers.push_back( new FCLayer(inCh, filters, activation, hasBias) );
+            layers.back()->setInput(input);
+            break;
         case MAXPOOL:
             layers.push_back( new MaxPoolLayer(inH, inW, inCh, size, stride, activation) );
             layers.back()->setInput(input);
