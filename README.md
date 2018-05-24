@@ -11,13 +11,13 @@ If you want to build it as an external library, however, we included a makefile 
 
 To use a neural network from code, you need to create a network object, and pass the path to its configuration directory to its constructor. This directory must contain the configuration file describing the network structure and the weights file.
 
-        #include &quot;RoboDNN.h&quot;
+        #include RoboDNN.h
 
-        Network net(&quot;path\_to\_config\_dir&quot;,&quot;config\_file\_name.cfg&quot;)
+        Network net(path_to_config_dir,config_file_name.cfg)
 
-        float\* img;
+        float* img;
 
-        float \*result = net.forward(img);
+        float *result = net.forward(img);
 
 2.Importing the neural network from Pytorch
 
