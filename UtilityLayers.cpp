@@ -127,7 +127,7 @@ void ConcatLayer::forward()
         int32_t currOutH = outH - getNextCropRows();
         
         // Concatenate 2 inputs
-        concat(inputs, otherInput, inW*currInH*inCh, inW*currInH*inCh2, outputs);
+        concat(otherInput, inputs, inW*currInH*inCh, inW*currInH*inCh2, outputs);
         
         // Apply activation
         activate(outputs, currOutH*outW*outCh, activation);
