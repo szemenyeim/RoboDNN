@@ -31,6 +31,51 @@ typedef enum {
     
 } LAYERTYPE;
 
+inline std::string type2Str(LAYERTYPE type)
+{
+    switch (type) {
+        case CONV:
+            return "Conv";
+            break;
+        case TRCONV:
+            return "Tr Conv";
+            break;
+        case FC:
+            return "Linear";
+            break;
+        case BATCHNORM:
+            return "BatchNorm";
+            break;
+        case MAXPOOL:
+            return "Max Pool";
+            break;
+        case AVGPOOL:
+            return "Avg Pool";
+            break;
+        case REORG:
+            return "Reorg";
+            break;
+        case CONCAT:
+            return "Concat";
+            break;
+        case SHORTCUT:
+            return "Shortcut";
+            break;
+        case SOFTMAX:
+            return "Softmax";
+            break;
+        case NETWORK:
+            return "Net";
+            break;
+        case OTHER:
+            return "Other";
+            break;            
+        default:
+            return "None";
+            break;
+    }
+}
+
 class Layer
 {
 protected:

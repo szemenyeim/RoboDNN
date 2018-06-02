@@ -11,7 +11,7 @@
 #include "BLAS.h"
 
 
-ConvLayer::ConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, int32_t _size, int32_t _stride, int32_t _padding, int32_t _dilation, ACTIVATION _activation, bool _hasBias)
+ConvLayer::ConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, Tuple _size, Tuple _stride, Tuple _padding, Tuple _dilation, ACTIVATION _activation, bool _hasBias)
 {
     // Setup layer variables
     type = CONV;
@@ -28,11 +28,11 @@ ConvLayer::ConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, int3
     cropRows = 0;
     
     // Calculate output size
-    outW = (inW + 2 * padding - (dilation * (size - 1) + 1)) / stride + 1;
-    outH = (inH + 2 * padding - (dilation * (size - 1) + 1)) / stride + 1;
+    outW = (inW + 2 * padding.x - (dilation.x * (size.x - 1) + 1)) / stride.x + 1;
+    outH = (inH + 2 * padding.y - (dilation.y * (size.y - 1) + 1)) / stride.y + 1;
     
     // Reserve weights and output
-    weights =  new float[outCh*size*size*inCh];
+    weights =  new float[outCh*size.x*size.y*inCh];
     if (hasBias) {
         bias = new float[outCh];
     }
@@ -56,7 +56,7 @@ void ConvLayer::forward()
         int32_t currOutH = outH - getNextCropRows();
         
         // Compute matrix sizes
-        int32_t k = size*size*inCh;
+        int32_t k = size.x*size.y*inCh;
         int32_t n = currOutH*outW;
         
         // Fill output with 0
@@ -80,7 +80,7 @@ void ConvLayer::forward()
 
 bool ConvLayer::loadWeights( std::ifstream &file )
 {
-    int32_t wCnt = size*size*inCh*outCh;
+    int32_t wCnt = size.x*size.y*inCh*outCh;
     
     // Load weights and bias (if the layer has bias)
     return loadweights_bin(file, wCnt, weights) && (!hasBias || loadweights_bin(file, outCh, bias));
@@ -89,13 +89,13 @@ bool ConvLayer::loadWeights( std::ifstream &file )
 void ConvLayer::print()
 {
     // Print parameters in a nice aligned way
-    std::cout << "Convolutional" << std::setw(7) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size << "x" << size << ") * " << dilation << " -> " << act2string(activation) << std::endl;
+    std::cout << "Convolutional" << std::setw(7) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size.x << "x" << size.y << ") * (" << dilation.x << "," << dilation.y << ") -> " << act2string(activation) << std::endl;
 }
 
 int32_t ConvLayer::getWorkSpaceSize()
 {
     // Size of the matrix used for the convolution
-    return outH*outW*size*size*inCh;
+    return outH*outW*size.x*size.y*inCh;
 }
 
 bool ConvLayer::HasBias()
@@ -103,7 +103,7 @@ bool ConvLayer::HasBias()
     return hasBias;
 }
 
-TransposedConvLayer::TransposedConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, int32_t _size, int32_t _stride, int32_t _padding, int32_t _outPadding, ACTIVATION _activation, bool _hasBias)
+TransposedConvLayer::TransposedConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, Tuple _size, Tuple _stride, Tuple _padding, int32_t _outPadding, ACTIVATION _activation, bool _hasBias)
 {
     // Setup layer variables
     type = TRCONV;
@@ -120,18 +120,18 @@ TransposedConvLayer::TransposedConvLayer(int32_t _h, int32_t _w, int32_t _inCh, 
     cropRows = 0;
     
     // Calculate output size
-    outW = (inW - 1) * stride - 2 * padding + size + outPadding;
-    outH = (inH - 1) * stride - 2 * padding + size + outPadding;
+    outW = (inW - 1) * stride.x - 2 * padding.x + size.x + outPadding;
+    outH = (inH - 1) * stride.y - 2 * padding.y + size.y + outPadding;
     
     // Reserve weights and output
-    weights =  new float[outCh*size*size*inCh];
+    weights =  new float[outCh*size.x*size.y*inCh];
     if (hasBias) {
         bias = new float[outCh];
     }
     outputs = new float[outW*outH*outCh];
 }
 
-TransposedConvLayer::TransposedConvLayer()
+TransposedConvLayer::~TransposedConvLayer()
 {
     delete [] weights;
     if (hasBias) {
@@ -148,7 +148,7 @@ void TransposedConvLayer::forward()
         int32_t currOutH = outH - getNextCropRows();
         
         // Compute matrix sizes
-        int32_t m = size*size*outCh;
+        int32_t m = size.x*size.y*outCh;
         int32_t n = currInH*inW;
         
         // Fill output with 0
@@ -158,7 +158,7 @@ void TransposedConvLayer::forward()
         gemm(true,false,m,n,inCh,1,weights,m,inputs,n,0,workspace,n);
         
         // Convert output matrix into an image-like array
-        col2im(workspace, outCh, currOutH, outW, size, stride, padding, outPadding, outputs);
+        col2im(workspace, outCh, currOutH, outW, size, stride, padding, outputs);
         
         // Add bias
         if (hasBias) {
@@ -172,7 +172,7 @@ void TransposedConvLayer::forward()
 
 bool TransposedConvLayer::loadWeights( std::ifstream &file )
 {
-    int32_t wCnt = size*size*inCh*outCh;
+    int32_t wCnt = size.x*size.y*inCh*outCh;
     
     // Load weights and bias (if the layer has bias)
     return loadweights_bin(file, wCnt, weights) && (!hasBias || loadweights_bin(file, outCh, bias));
@@ -181,13 +181,13 @@ bool TransposedConvLayer::loadWeights( std::ifstream &file )
 void TransposedConvLayer::print()
 {
     // Print parameters in a nice aligned way
-    std::cout << "Tr Convolutional" << std::setw(4) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size << "x" << size << ")" << std::setw(8) << " -> " << act2string(activation) << std::endl;
+    std::cout << "Tr Convolutional" << std::setw(4) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size .x<< "x" << size.y << ")" << std::setw(8) << " -> " << act2string(activation) << std::endl;
 }
 
 int32_t TransposedConvLayer::getWorkSpaceSize()
 {
     // Size of the matrix used for the convolution
-    return inH*inW*size*size*outCh;
+    return inH*inW*size.x*size.y*outCh;
 }
 
 bool TransposedConvLayer::HasBias()

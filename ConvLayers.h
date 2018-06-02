@@ -10,19 +10,21 @@
 #define ConvLayers_h
 
 #include "Layer.h"
+#include "Utils.h"
 
 class ConvLayer : public Layer
 {
 private:
     float *weights;
     float *bias;
-    int32_t size;
-    int32_t stride;
-    int32_t padding;
-    int32_t dilation;
+    Tuple size;
+    Tuple stride;
+    Tuple padding;
+    Tuple dilation;
     bool hasBias;
+    
 public:
-    ConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, int32_t _size, int32_t _stride, int32_t _padding, int32_t _dilation, ACTIVATION _activation, bool _hasBias);
+    ConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, Tuple _size, Tuple _stride, Tuple _padding, Tuple _dilation, ACTIVATION _activation, bool _hasBias);
     ~ConvLayer();
     void forward();
     bool HasBias();
@@ -36,14 +38,14 @@ class TransposedConvLayer : public Layer
 private:
     float *weights;
     float *bias;
-    int32_t size;
-    int32_t stride;
-    int32_t padding;
+    Tuple size;
+    Tuple stride;
+    Tuple padding;
     int32_t outPadding;
     bool hasBias;
 public:
-    TransposedConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, int32_t _size, int32_t _stride, int32_t _padding, int32_t _outPadding, ACTIVATION _activation, bool _hasBias);
-    TransposedConvLayer();
+    TransposedConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, Tuple _size, Tuple _stride, Tuple _padding, int32_t _outPadding, ACTIVATION _activation, bool _hasBias);
+    ~TransposedConvLayer();
     void forward();
     bool HasBias();
     int32_t getWorkSpaceSize();

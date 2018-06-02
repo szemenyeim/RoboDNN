@@ -8,6 +8,7 @@
 
 #include "BLAS.h"
 #include <iostream>
+#include <cmath>
 
 // Inplace bias addition
 void addBias( float *inout, const float* bias, int32_t ch, int32_t n)
@@ -123,6 +124,18 @@ void gemm(bool TA, bool TB, int32_t M, int32_t N, int32_t K, float ALPHA,
 }
 
 // Affine normalization: out = gamma * (in-mean)/(sqrt(var)) + beta
+// Naive
+void batchNormNaive(float *x, const float *mean, const float *variance, const float *gamma, const float *beta, int32_t filters, int32_t spatial)
+{
+    for(int32_t f = 0; f < filters; ++f){
+        for(int32_t i = 0; i < spatial; ++i){
+            int index = f*spatial + i;
+            x[index] = (x[index] - mean[f])/sqrtf(variance[f]+.00001f)*gamma[f]+beta[f];
+        }
+    }
+}
+
+// Affine normalization: out = gamma * (in-mean)/(sqrt(var)) + beta
 // Note: 1/sqrt(var) is computed in advance
 void batchNorm(float *x, const float *mean, const float *variance, const float *gamma, const float *beta, int32_t filters, int32_t spatial)
 {
@@ -150,20 +163,20 @@ void batchNorm(float *x, const float *mean, const float *variance, int32_t filte
 // Matrix creation for Convolutional layers
 void im2col(const float* data_im,
             int32_t channels, int32_t height, int32_t width,
-            int32_t ksize, int32_t stride, int32_t pad, int32_t dilation, float* data_col)
+            Tuple ksize, Tuple stride, Tuple pad, Tuple dilation, float* data_col)
 {
-    int32_t height_col = (height + 2 * pad - (dilation * (ksize - 1) + 1)) / stride + 1;
-    int32_t width_col = (width + 2 * pad - (dilation * (ksize - 1) + 1)) / stride + 1;
+    int32_t height_col = (height + 2 * pad.y - (dilation.y * (ksize.y - 1) + 1)) / stride.y + 1;
+    int32_t width_col = (width + 2 * pad.x - (dilation.x * (ksize.x - 1) + 1)) / stride.x + 1;
     
-    int32_t channels_col = channels * ksize * ksize;
+    int32_t channels_col = channels * ksize.x * ksize.y;
     for (int32_t c = 0; c < channels_col; ++c) {
-        int32_t w_offset = ( c % ksize )*dilation;
-        int32_t h_offset = ((c / ksize) % ksize)*dilation;
-        int32_t c_im = c / ksize / ksize;
+        int32_t w_offset = ( c % ksize.x )*dilation.x;
+        int32_t h_offset = ((c / ksize.x) % ksize.y)*dilation.y;
+        int32_t c_im = c / ksize.x / ksize.y;
         for (int32_t h = 0; h < height_col; ++h) {
             for (int32_t w = 0; w < width_col; ++w) {
-                int32_t im_row = h_offset + h * stride - pad;
-                int32_t im_col = w_offset + w * stride - pad;
+                int32_t im_row = h_offset + h * stride.y - pad.y;
+                int32_t im_col = w_offset + w * stride.x - pad.x;
                 int32_t col_index = (c * height_col + h) * width_col + w;
                 if (im_row >= 0 && im_col >= 0 && im_row < height && im_col < width)
                     data_col[col_index] = data_im[im_col + width*(im_row + height*c_im)];
@@ -177,22 +190,22 @@ void im2col(const float* data_im,
 // Image creation for transposed convolution
 void col2im(const float* data_col,
             int32_t channels, int32_t height, int32_t width,
-            int32_t ksize, int32_t stride, int32_t pad, int32_t outpad, float* data_im)
+            Tuple ksize, Tuple stride, Tuple pad, float* data_im)
 {
-    int32_t height_col = (height + 2*pad - ksize) / stride + 1;
-    int32_t width_col = (width + 2*pad - ksize) / stride + 1;
+    int32_t height_col = (height + 2*pad.y - ksize.y) / stride.y + 1;
+    int32_t width_col = (width + 2*pad.x - ksize.x) / stride.x + 1;
     
-    int32_t channels_col = channels * ksize * ksize;
+    int32_t channels_col = channels * ksize.x * ksize.y;
     for (int32_t c = 0; c < channels_col; ++c) {
-        int32_t w_offset = c % ksize;
-        int32_t h_offset = (c / ksize) % ksize;
-        int32_t c_im = c / ksize / ksize;
+        int32_t w_offset = c % ksize.x;
+        int32_t h_offset = (c / ksize.x) % ksize.y;
+        int32_t c_im = c / ksize.x / ksize.y;
         for (int32_t h = 0; h < height_col; ++h) {
             for (int32_t w = 0; w < width_col; ++w) {
-                int32_t im_row = h_offset + h * stride - pad;
-                int32_t im_col = w_offset + w * stride - pad;
+                int32_t im_row = h_offset + h * stride.y - pad.y;
+                int32_t im_col = w_offset + w * stride.x - pad.x;
                 int32_t col_index = (c * height_col + h) * width_col + w;
-                if (im_row >= 0 && im_col >= 0 && im_row < height-outpad && im_col < width-outpad)
+                if (im_row >= 0 && im_col >= 0 && im_row < height && im_col < width)
                     data_im[im_col + (width)*(im_row + (height)*c_im)] += data_col[col_index];
             }
         }
@@ -202,9 +215,9 @@ void col2im(const float* data_col,
 // Reorder neurons:
 // If forward: (WxHxC)->(W/stride x H/Stride x C*stride^2)
 // If backward: (WxHxC)->(W*stride x H/*tride x C/stride^2)
-void reorg(const float *x, int32_t w, int32_t h, int32_t c, int32_t stride, bool forward, float *out)
+void reorg(const float *x, int32_t w, int32_t h, int32_t c, Tuple stride, bool forward, float *out)
 {
-    int32_t dScale = stride*stride;
+    int32_t dScale = stride.x*stride.y;
     
     for(int32_t k = 0; k < c; ++k){
         for(int32_t j = 0; j < h; ++j){
@@ -212,9 +225,9 @@ void reorg(const float *x, int32_t w, int32_t h, int32_t c, int32_t stride, bool
                 int32_t in_index  = i + w*(j + h*k);
                 int32_t c2 = k / dScale;
                 int32_t offset = k % dScale;
-                int32_t w2 = i*stride + offset % stride;
-                int32_t h2 = j*stride + offset / stride;
-                int32_t out_index = w2 + w*stride*(h2 + h*stride*c2);
+                int32_t w2 = i*stride.x + offset % stride.x;
+                int32_t h2 = j*stride.y + offset / stride.y;
+                int32_t out_index = w2 + w*stride.x*(h2 + h*stride.y*c2);
                 if(forward) out[out_index] = x[in_index];
                 else out[in_index] = x[out_index];
             }

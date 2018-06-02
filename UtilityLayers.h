@@ -9,6 +9,7 @@
 #ifndef UltilityLayers_h
 #define UltilityLayers_h
 #include "Layer.h"
+#include "Utils.h"
 
 class ShortcutLayer : public Layer
 {
@@ -27,10 +28,10 @@ public:
 class ReorgLayer : public Layer
 {
 private:
-    int32_t stride;
+    Tuple stride;
     bool reverse;
 public:
-    ReorgLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _stride, bool _reverse, ACTIVATION _activation);
+    ReorgLayer(int32_t _h, int32_t _w, int32_t _inCh, Tuple _stride, bool _reverse, ACTIVATION _activation);
     ~ReorgLayer();
     void forward();
     bool loadWeights( std::ifstream& ) {return true;}

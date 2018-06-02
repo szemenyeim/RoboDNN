@@ -50,7 +50,7 @@ void ShortcutLayer::print()
     std::cout << "Shortcut Layer" << std::setw(6) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") From: " << layerIndex << std::setw(12) << " -> " << act2string(activation) << std::endl;
 }
 
-ReorgLayer::ReorgLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _stride, bool _reverse, ACTIVATION _activation)
+ReorgLayer::ReorgLayer(int32_t _h, int32_t _w, int32_t _inCh, Tuple _stride, bool _reverse, ACTIVATION _activation)
 {
     // Setup parameters
     type = REORG;
@@ -63,9 +63,9 @@ ReorgLayer::ReorgLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _stride, b
     cropRows = 0;
     
     // Compute output size
-    outW = reverse ? inW * stride : inW / stride;
-    outH = reverse ? inH * stride : inH / stride;
-    outCh = reverse ? inCh / (stride*stride) : inCh * (stride*stride);
+    outW = reverse ? inW * stride.x : inW / stride.x;
+    outH = reverse ? inH * stride.y : inH / stride.y;
+    outCh = reverse ? inCh / (stride.x*stride.y) : inCh * (stride.x*stride.y);
     
     // Reserve output
     outputs =  new float [outH*outW*outCh];
@@ -182,6 +182,7 @@ void BatchNormLayer::forward()
         
         // Apply proper normalization
         if (affine)
+            //batchNormNaive(outputs, means, var, gamma, beta, outCh, currOutH*outW);
             batchNorm(outputs, means, var, gamma, beta, outCh, currOutH*outW);
         else
             batchNorm(outputs, means, var, outCh, currOutH*outW);

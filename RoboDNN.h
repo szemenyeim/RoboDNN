@@ -28,7 +28,7 @@ private:
     
     // Loaders
     bool readNetworkFromConfig( const std::string &cfgFile );
-    bool loadWeights( const std::string &dir );
+    bool loadWeights( const std::string &dir, const std::string &wFilename );
     void constructLayer( const std::vector<std::string> & settings );
     
     // Ouput and network-wide workspace
@@ -40,10 +40,10 @@ private:
     
 public:
     
-    Network( const std::string &dir, const std::string &cfgFileName ): workspace(NULL), workspaceSize(0)
+    Network( const std::string &dir, const std::string &cfgFileName, const std::string &wFilename = "weights.dat" ): workspace(NULL), workspaceSize(0)
     {
         readNetworkFromConfig( dir+cfgFileName );
-        loadWeights(dir);
+        loadWeights(dir, wFilename);
     }
     
     ~Network();

@@ -19,8 +19,20 @@
 #include "Layer.h"
 
 
+class Tuple
+{
+public:
+    int32_t x;
+    int32_t y;
+    
+    Tuple(int32_t _x,int32_t _y):x(_x),y(_y){}
+    
+    Tuple(){}
+};
+
 // Loads the neural net weights
 bool loadweights_bin( std::ifstream &file, int32_t N, float* params);
+bool loadweights_bin_float( std::ifstream &file, int32_t N, float* params);
 
 // Split string along delimiters
 inline std::vector<std::string> splitString( const std::string &s, const std::string &delimiter)
@@ -51,6 +63,7 @@ inline std::vector<std::string> splitString( const std::string &s, const std::st
 
 void readBlob( std::ifstream &file, std::vector<std::string> &vector );
 
+Tuple findTupleOption( const std::vector<std::string> &vector, const std::string str, int32_t def );
 int32_t findIntOption( const std::vector<std::string> &vector, const std::string str, int32_t def );
 bool findBoolOption( const std::vector<std::string> &vector, const std::string str, bool def );
 float findFloatOption( const std::vector<std::string> &vector, const std::string str, float def );
@@ -113,6 +126,10 @@ inline LAYERTYPE getLayerType( const std::string &string )
     {
         return CONV;
     }
+    if( string.find("linear") != std::string::npos || string.find("fc") != std::string::npos )
+    {
+        return FC;
+    }
     if( string.find("avg") != std::string::npos )
     {
         return AVGPOOL;
@@ -156,6 +173,31 @@ inline int32_t getIntegerOption( const std::string &string, int32_t def )
     return ::atoi(words[1].c_str());
 }
 
+inline Tuple getTupleOption( const std::string &string )
+{
+    Tuple res(-1,-1);
+    
+    std::vector<std::string> words = splitString(string, "=");
+    
+    if (words.size() >= 2) {
+        
+        int32_t beg = static_cast<int32_t>(words[1].find("(")+1), end = static_cast<int32_t>(words[1].find(")")-1);
+    
+        std::string nums = words[1].substr(beg,end);
+    
+        if( nums.size() )
+        {
+            std::vector<std::string> numbers = splitString(nums, ",");
+                        
+            if (numbers.size() >= 2) {
+                res.x = ::atoi(numbers[1].c_str());
+                res.y = ::atoi(numbers[0].c_str());
+            }
+        }
+    }
+    return res;
+}
+
 // Find a bool in a string after '='
 inline bool getBooleanOption( const std::string &string, bool def )
 {
@@ -192,5 +234,16 @@ inline std::string getStringOption( const std::string &string, std::string &def 
     return words[1];
 }
 
+inline int32_t convertIndex(int32_t index, int32_t maxSize, bool minCheck = false)
+{
+    index += index < 0 ? maxSize : 0;
+    if (index >= maxSize) {
+        index = maxSize - 1;
+    }
+    if (minCheck && index < 0) {
+        index = 0;
+    }
+    return index;
+}
 
 #endif /* Utils_h */

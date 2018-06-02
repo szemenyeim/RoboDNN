@@ -9,14 +9,15 @@
 #ifndef PoolLayers_h
 #define PoolLayers_h
 #include "Layer.h"
+#include "Utils.h"
 
 class MaxPoolLayer : public Layer
 {
 private:
-    int32_t size;
-    int32_t stride;
+    Tuple size;
+    Tuple stride;
 public:
-    MaxPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, int32_t _size, int32_t _stride, ACTIVATION _activation);
+    MaxPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, Tuple _size, Tuple _stride, ACTIVATION _activation);
     ~MaxPoolLayer();
     void forward();
     bool loadWeights( std::ifstream& ) {return true;}
@@ -27,10 +28,10 @@ public:
 class AvgPoolLayer : public Layer
 {
 private:
-    int32_t size;
-    int32_t stride;
+    Tuple size;
+    Tuple stride;
 public:
-    AvgPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, int32_t _size, int32_t _stride, ACTIVATION _activation);
+    AvgPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, Tuple _size, Tuple _stride, ACTIVATION _activation);
     ~AvgPoolLayer();
     void forward();
     bool loadWeights( std::ifstream& ) {return true;}

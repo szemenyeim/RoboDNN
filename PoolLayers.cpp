@@ -12,7 +12,7 @@
 #include <cfloat>
 
 
-MaxPoolLayer::MaxPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, int32_t _size, int32_t _stride, ACTIVATION _activation)
+MaxPoolLayer::MaxPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, Tuple _size, Tuple _stride, ACTIVATION _activation)
 {
     // Setup parameters
     type = MAXPOOL;
@@ -21,8 +21,8 @@ MaxPoolLayer::MaxPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, int32_t _size
     inCh = _outCh;
     stride = _stride;
     size = _size;
-    outW = inW/stride;
-    outH = inH/stride ;
+    outW = inW/stride.x;
+    outH = inH/stride.y;
     outCh = _outCh;
     outputs =  new float [outH*outW*outCh];
     activation = _activation;
@@ -52,10 +52,10 @@ void MaxPoolLayer::forward()
                     // Get the max value amongts the input pixels
                     int32_t out_index = j + outW*(i + currOutH*k);
                     float max = -FLT_MAX;
-                    for(int32_t n = 0; n < size; ++n){
-                        for(int32_t m = 0; m < size; ++m){
-                            int32_t cur_h = h_offset + i*stride + n;
-                            int32_t cur_w = w_offset + j*stride + m;
+                    for(int32_t n = 0; n < size.y; ++n){
+                        for(int32_t m = 0; m < size.x; ++m){
+                            int32_t cur_h = h_offset + i*stride.y + n;
+                            int32_t cur_w = w_offset + j*stride.x + m;
                             int32_t index = cur_w + inW*(cur_h + currInH*k);
                             bool valid = (cur_h < currInH && cur_w < inW);
                             float val = valid ? inputs[index] : -FLT_MAX;
@@ -75,10 +75,10 @@ void MaxPoolLayer::forward()
 void MaxPoolLayer::print()
 {
     // Print layer parameters aligned
-    std::cout << "Max Pooling:" << std::setw(8) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size << "x" << size << ")" << std::setw(8) << " -> " << act2string(activation) << std::endl;
+    std::cout << "Max Pooling:" << std::setw(8) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size.x << "x" << size.y << ")" << std::setw(8) << " -> " << act2string(activation) << std::endl;
 }
 
-AvgPoolLayer::AvgPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, int32_t _size, int32_t _stride, ACTIVATION _activation)
+AvgPoolLayer::AvgPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, Tuple _size, Tuple _stride, ACTIVATION _activation)
 {
     // Setup parameters
     type = AVGPOOL;
@@ -87,8 +87,8 @@ AvgPoolLayer::AvgPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, int32_t _size
     inCh = _outCh;
     stride = _stride;
     size = _size;
-    outW = inW/stride;
-    outH = inH/stride;
+    outW = inW/stride.x;
+    outH = inH/stride.y;
     outCh = _outCh;
     outputs =  new float [outH*outW*outCh];
     activation = _activation;
@@ -111,7 +111,7 @@ void AvgPoolLayer::forward()
         int32_t h_offset = 0;
         
         // Compute averaging denominator
-        float denum = 1.f/(size*size);
+        float denum = 1.f/(size.x*size.y);
         
         // Fill output with 0
         fill(getN(), 0.f, outputs);
@@ -123,10 +123,10 @@ void AvgPoolLayer::forward()
                     
                     // Sum input elements
                     int32_t out_index = j + outW*(i + currOutH*k);
-                    for(int32_t n = 0; n < size; ++n){
-                        for(int32_t m = 0; m < size; ++m){
-                            int32_t cur_h = h_offset + i*stride + n;
-                            int32_t cur_w = w_offset + j*stride + m;
+                    for(int32_t n = 0; n < size.y; ++n){
+                        for(int32_t m = 0; m < size.x; ++m){
+                            int32_t cur_h = h_offset + i*stride.y + n;
+                            int32_t cur_w = w_offset + j*stride.x + m;
                             int32_t index = cur_w + inW*(cur_h + currInH*k);
                             if (cur_h < currInH && cur_w < inW)
                                 outputs[out_index] += inputs[index];
@@ -146,5 +146,5 @@ void AvgPoolLayer::forward()
 void AvgPoolLayer::print()
 {
     // Print layer parameters aligned
-    std::cout << "Avg Pooling:" << std::setw(8) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size << "x" << size << ")" << std::setw(8) << " -> " << act2string(activation) << std::endl;
+    std::cout << "Avg Pooling:" << std::setw(8) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size.x << "x" << size.y << ")" << std::setw(8) << " -> " << act2string(activation) << std::endl;
 }

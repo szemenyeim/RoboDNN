@@ -94,23 +94,28 @@ void Network::constructLayer( const std::vector<std::string> & settings )
     LAYERTYPE type = getLayerType(settings[0]);
     
     // Set input options
-    int32_t inCh = layers.empty() ? ch : layers.back()->getCh();
-    int32_t inW = layers.empty() ? W : layers.back()->getW();
-    int32_t inH = layers.empty() ? H : layers.back()->getH();
-    float *input = layers.empty() ? NULL : layers.back()->getOutput();
+    int32_t inputIndex = findIntOption(settings, "input", -1);
+    inputIndex = convertIndex( inputIndex, static_cast<int32_t>(layers.size()));
+    int32_t inCh = layers.empty() || inputIndex < 0 ? ch : layers[inputIndex]->getCh();
+    int32_t inW = layers.empty() || inputIndex < 0  ? W : layers[inputIndex]->getW();
+    int32_t inH = layers.empty() || inputIndex < 0  ? H : layers[inputIndex]->getH();
+    float *input = layers.empty() || inputIndex < 0  ? NULL : layers[inputIndex]->getOutput();
     
     // Try and read all other options
-    int32_t size = findIntOption(settings, "size", 3);
-    int32_t pad = findIntOption(settings, "pad", 0);
-    int32_t stride = findIntOption(settings, "stride", 1);
-    int32_t dilation = findIntOption(settings, "dilation", 1);
+    Tuple size = findTupleOption(settings, "size", 3);
+    Tuple pad = findTupleOption(settings, "pad", 0);
+    Tuple stride = findTupleOption(settings, "stride", 1);
+    Tuple dilation = findTupleOption(settings, "dilation", 1);
     int32_t outPad = findIntOption(settings, "outpad", 0);
     int32_t filters = findIntOption(settings, "filters", 1);
     int32_t layerIndex = findIntOption(settings, "from", 0);
+    layerIndex = convertIndex( layerIndex, static_cast<int32_t>(layers.size()), true);
     bool hasBias = findBoolOption(settings, "hasBias", true);
     bool reverse = findBoolOption(settings, "reverse", true);
     bool affine = findBoolOption(settings, "affine", true);
     ACTIVATION activation = string2Act(findStringOption(settings, "activation", "none"));
+    
+    int32_t channelCnt;
     
     // Construct layer
     switch (type) {
@@ -143,29 +148,19 @@ void Network::constructLayer( const std::vector<std::string> & settings )
             layers.back()->setInput(input);
             break;
         case CONCAT:
-            if (static_cast<int32_t>(layers.size()) > layerIndex) {
-                int32_t c2 = layers[layerIndex]->getCh();
-                layers.push_back( new ConcatLayer(inH, inW, inCh, c2, layerIndex, activation) );
-                // Set the two inputs
-                layers.back()->setInput(input);
-                static_cast<ConcatLayer*>(layers.back())->setOtherInput(layers[layerIndex]->getOutput());
-            } else
-            {
-                std::cout << "Invalid layer index parameter. Cannot concatenate with a layer ahead the current one" << std::endl;
-            }
+            channelCnt = layers[layerIndex]->getCh();
+            layers.push_back( new ConcatLayer(inH, inW, inCh, channelCnt, layerIndex, activation) );
+            // Set the two inputs
+            layers.back()->setInput(input);
+            static_cast<ConcatLayer*>(layers.back())->setOtherInput(layers[layerIndex]->getOutput());
             break;
         case SHORTCUT:
-            if (static_cast<int32_t>(layers.size()) > layerIndex) {
-                int32_t _channelCnt = std::min( inCh, layers[layerIndex]->getCh());
-                layers.push_back( new ShortcutLayer(inH, inW, _channelCnt, inCh, layerIndex, activation) );
-                // Setting inplace input (this will also be the output)
-                static_cast<ShortcutLayer*>(layers.back())->setInplaceInput(input);
-                // Connect the other layer
-                layers.back()->setInput(layers[layerIndex]->getOutput());
-            } else
-            {
-                std::cout << "Invalid layer index parameter. Cannot make shortcut to a layer ahead the current one" << std::endl;
-            }
+            channelCnt = std::min( inCh, layers[layerIndex]->getCh());
+            layers.push_back( new ShortcutLayer(inH, inW, channelCnt, inCh, layerIndex, activation) );
+            // Setting inplace input (this will also be the output)
+            static_cast<ShortcutLayer*>(layers.back())->setInplaceInput(input);
+            // Connect the other layer
+            layers.back()->setInput(layers[layerIndex]->getOutput());
             break;
         case SOFTMAX:
             layers.push_back( new SoftMaxLayer(inH, inW, inCh) );
@@ -177,11 +172,11 @@ void Network::constructLayer( const std::vector<std::string> & settings )
     }
 }
 
-bool Network::loadWeights(const std::string &dir)
+bool Network::loadWeights(const std::string &dir, const std::string &wFilename)
 {
     // Open weights file
     std::ifstream file;
-    file.open( dir + "weights.dat", std::ios::binary);
+    file.open( dir + wFilename, std::ios::binary);
     if (!file.is_open()) {
         std::cout << "Error: could not open weights file" << std::endl;
         return false;
