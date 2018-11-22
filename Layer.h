@@ -69,10 +69,7 @@ inline std::string type2Str(LAYERTYPE type)
             break;
         case OTHER:
             return "Other";
-            break;            
-        default:
-            return "None";
-            break;
+            break;  
     }
 }
 

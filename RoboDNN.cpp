@@ -99,7 +99,7 @@ void Network::constructLayer( const std::vector<std::string> & settings )
     int32_t inCh = layers.empty() || inputIndex < 0 ? ch : layers[inputIndex]->getCh();
     int32_t inW = layers.empty() || inputIndex < 0  ? W : layers[inputIndex]->getW();
     int32_t inH = layers.empty() || inputIndex < 0  ? H : layers[inputIndex]->getH();
-    float *input = layers.empty() || inputIndex < 0  ? NULL : layers[inputIndex]->getOutput();
+    float *input = layers.empty() || inputIndex < 0  ? nullptr : layers[inputIndex]->getOutput();
     
     // Try and read all other options
     Tuple size = findTupleOption(settings, "size", 3);
