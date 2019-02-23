@@ -3,10 +3,27 @@
 #include <cmath>
 #include "Utils.h"
 #include "RoboDNN.h"
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <opencv2/opencv.hpp>
 #include <chrono>
-namespace fs = std::filesystem;
+
+namespace fs = ::boost::filesystem;
+
+void get_all(const fs::path& root, const std::string& ext, std::vector<fs::path>& ret)
+{
+    if(!fs::exists(root) || !fs::is_directory(root)) return;
+    
+    fs::recursive_directory_iterator it(root);
+    fs::recursive_directory_iterator endit;
+    
+    while(it != endit)
+    {
+        if(fs::is_regular_file(*it) && it->path().extension() == ext) ret.push_back(it->path().filename());
+        ++it;
+        
+    }
+    
+}
 
 int main(int argc, char *argv[])
 {
@@ -37,23 +54,19 @@ int main(int argc, char *argv[])
 	}
 
 	// Read images
-	std:vector<fs::path> images;
+    std::vector<fs::path> images;
 
-	for (const auto & entry : fs::directory_iterator(imPath))
-	{
-		if (!entry.extension().compare(".png") || !entry.extension().compare(".jpg"))
-			images.push_back(entry);
-	}
+    get_all(imPath,".png",images);
 
 	// Construct net
 	Network net(config, "net.cfg", "net.weights");
 
-	std::chrono::duration<double> elapsed = 0;
+	std::chrono::duration<double> elapsed(0.0);
 	int imgCnt = 0;
 
-	for (const auto & entry : images)
+    for (fs::path & entry : images)
 	{
-		cv::Mat img = cv::imread(entry.path());
+		cv::Mat img = cv::imread(entry.string());
 		std::vector<float> in(img.rows*img.cols*3);
 		int rowoffs = 0;
 		int choffs = img.rows*img.cols;
@@ -70,8 +83,10 @@ int main(int argc, char *argv[])
 		}
 
 		auto start = std::chrono::high_resolution_clock::now();
+        
+        float *data_f = net.forward(in.data());
 
-		std::vector<float> out = net.forward(in);
+        std::vector<float> out(data_f, data_f + sizeof(data_f)/sizeof(data_f[0]));
 
 		auto finish = std::chrono::high_resolution_clock::now();
 

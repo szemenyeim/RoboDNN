@@ -1,5 +1,6 @@
 CXX=g++
 CXXFLAGS=-I . -Wall -Wextra -Ofast -MD
+CXXFLAGST=-I . -Wall -Wextra -Ofast -MD -std=c++11
 
 BUILD = bin
 
@@ -12,6 +13,7 @@ TEST = test.cpp
 DEPS = Activations.h BLAS.h Layer.h ConvLayers.h PoolLayers.h RoboDNN.h UtiliyLayers.h Utils.h
 
 LDFLAGS = $(BUILD)/RoboDNN.so
+LDFLAGST = -lopencv_core -lopencv_imgcodecs -lboost_filesystem -lboost_system $(BUILD)/RoboDNN.so
 
 $(BUILD)/%.o: %.cpp
 	@mkdir -p bin
@@ -22,7 +24,7 @@ lib: $(OBJS)
 
 tests: lib
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LTEST) -o $(BUILD)/layerTest
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lopencv_core -lopencv_imgcodecs $(TEST) -o $(BUILD)/test
+	$(CXX) $(CXXFLAGST) $(LDFLAGST) $(TEST) -o $(BUILD)/test
 
 clean:
 	rm -rf $(BUILD)
