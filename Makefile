@@ -6,7 +6,8 @@ BUILD = bin
 _OBJS = Activations.o BLAS.o ConvLayers.o PoolLayers.o RoboDNN.o Utils.o UtilityLayers.o
 OBJS = $(addprefix $(BUILD)/,$(_OBJS))
 
-EXEC = layerTests.cpp
+LTEST = layerTests.cpp
+TEST = test.cpp
 
 DEPS = Activations.h BLAS.h Layer.h ConvLayers.h PoolLayers.h RoboDNN.h UtiliyLayers.h Utils.h
 
@@ -20,7 +21,8 @@ lib: $(OBJS)
 	$(CXX) $(CXXFLAGS) -shared $^ -o $(BUILD)/RoboDNN.so
 
 tests: lib
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(EXEC) -o $(BUILD)/layerTest
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LTEST) -o $(BUILD)/layerTest
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -lopencv_core -lopencv_imgcodecs $(TEST) -o $(BUILD)/test
 
 clean:
 	rm -rf $(BUILD)
