@@ -66,8 +66,9 @@ int main(int argc, char *argv[])
 
     for (fs::path & entry : images)
 	{
-		cv::Mat img = cv::imread(entry.string());
-		std::vector<float> in(img.rows*img.cols*3);
+		cv::Mat img = cv::imread(imPath + entry.string());
+        std::cout << imPath + entry.string() << std::endl;
+        std::vector<float> in(img.rows*img.cols*3);
 		int rowoffs = 0;
 		int choffs = img.rows*img.cols;
 		for (int i = 0; i < img.rows; i++)
@@ -90,11 +91,19 @@ int main(int argc, char *argv[])
 
 		auto finish = std::chrono::high_resolution_clock::now();
         
+        for(int i = 0; i < 10; i++)
+        {
+            std::cout << out[i] << ", ";
+            
+        }
+        std::cout << std::endl;
+        exit(0);
+        
         // write file
         std::stringstream iss(entry.string());
         std::string path;
         std::getline(iss,path,'.');
-        std::ofstream FILE(path + ".npy", std::ios::out | std::ofstream::binary);
+        std::ofstream FILE(outPAth + path + ".npy", std::ios::out | std::ofstream::binary);
         std::copy(out.begin(), out.end(), std::ostreambuf_iterator<char>(FILE));
         FILE.close();
 

@@ -154,7 +154,7 @@ void batchNorm(float *x, const float *mean, const float *variance, int32_t filte
 {
     for(int32_t f = 0; f < filters; ++f){
         for(int32_t i = 0; i < spatial; ++i){
-            int index = filters*spatial + f*spatial + i;
+            int index = f*spatial + i;
             x[index] = (x[index] - mean[f])*variance[f];
         }
     }

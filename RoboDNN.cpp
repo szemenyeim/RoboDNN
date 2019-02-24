@@ -8,6 +8,7 @@
 
 #include "RoboDNN.h"
 #include "Utils.h"
+#include "BLAS.h"
 #include "ConvLayers.h"
 #include "PoolLayers.h"
 #include "UtilityLayers.h"
@@ -16,6 +17,12 @@ Network::~Network()
 {
     if (workspace) {
         delete [] workspace;
+    }
+    if (mean) {
+        delete [] mean;
+    }
+    if (std) {
+        delete [] std;
     }
     for (size_t i = 0; i < layers.size(); i++)
     {
@@ -52,33 +59,35 @@ bool Network::readNetworkFromConfig(const std::string &cfgFile)
     H = findIntOption(settings, "height", 0);
     ch = findIntOption(settings, "channels", 0);
     downFactor = findIntOption(settings, "downscale", 1);
-    std::string mean = findStringOption(settings, "mean", "");
-    std::string std = findStringOption(settings, "std", "");
+    std::string meanS = findStringOption(settings, "mean", "");
+    std::string stdS = findStringOption(settings, "std", "");
     
     // Sanity check
     if (W <= 0 || H <= 0 || ch <= 0) {
         return false;
     }
     
+    mean = new float[ch];
+    std = new float[ch];
+    
     // optional normalization
-    if (!mean.empty() && !std.empty())
+    if (!meanS.empty() && !stdS.empty())
     {
         normalize = true;
-        std::vector<float> vals;
         
         std::string val;
-        std::stringstream iss(mean);
+        std::stringstream iss(meanS);
+        int32_t cnt = 0;
         while (std::getline(iss, val, ',')) {
-            vals.push_back(std::stof(val)*255);
+            mean[cnt] = std::stof(val)*255;
+            cnt += 1;
         }
-        std::stringstream iss2(std);
+        std::stringstream iss2(stdS);
+        cnt = 0;
         while (std::getline(iss2, val, ',')) {
-            vals.push_back(255.0 * std::stof(val));
+            std[cnt] = 1.0 / (255.0 * std::stof(val));
+            cnt += 1;
         }
-        
-        layers.push_back( new BatchNormLayer(H, W, ch, false, NONE) );
-        static_cast<BatchNormLayer*>(layers.back())->setInplaceInput(nullptr);
-        static_cast<BatchNormLayer*>(layers.back())->setWeights(vals);
 
     }
     
@@ -119,8 +128,6 @@ void Network::constructLayer( const std::vector<std::string> & settings )
     
     // Set input options
     int32_t inputIndex = findIntOption(settings, "input", -1);
-    if( inputIndex > 0 && normalize)
-        inputIndex += 1;
     inputIndex = convertIndex( inputIndex, static_cast<int32_t>(layers.size()));
     int32_t inCh = layers.empty() || inputIndex < 0 ? ch : layers[inputIndex]->getCh();
     int32_t inW = layers.empty() || inputIndex < 0  ? W : layers[inputIndex]->getW();
@@ -136,8 +143,6 @@ void Network::constructLayer( const std::vector<std::string> & settings )
     int32_t filters = findIntOption(settings, "filters", 1);
     int32_t layerIndex = findIntOption(settings, "from", 0);
     int32_t oned = findIntOption(settings, "oned", 0);
-    if( layerIndex > 0 && normalize)
-        layerIndex += 1;
     layerIndex = convertIndex( layerIndex, static_cast<int32_t>(layers.size()), true);
     bool hasBias = findBoolOption(settings, "hasBias", true);
     bool reverse = findBoolOption(settings, "reverse", true);
@@ -216,10 +221,8 @@ bool Network::loadWeights(const std::string &dir, const std::string &wFilename)
         return false;
     }
     
-    size_t first = normalize ? 1 : 0;
-    
     // Read layer weights
-    for( size_t i = first; i < layers.size(); i++ )
+    for( size_t i = 0; i < layers.size(); i++ )
     {
         if( !layers[i]->loadWeights(file) )
             return false;
@@ -239,12 +242,32 @@ int32_t Network::setClipRows( int32_t _clipRows )
     return clipRows;
 }
 
-float* Network::forward( const float *input )
+float* Network::forward( float *input )
 {
     if (!layers.empty()) {
+        for(int j = 0; j < 10; j++)
+        {
+            std::cout << input[j] << ", ";
+            
+        }
+        std::cout << std::endl;
+        if (normalize)
+            batchNorm(input, mean, std, ch, H*W);
+        for(int j = 0; j < 10; j++)
+        {
+            std::cout << input[j] << ", ";
+            
+        }
+        std::cout << std::endl;
         layers[0]->setInput(input);
         for (size_t i = 0; i < layers.size(); i++) {
             layers[i]->forward();
+            for(int j = 0; j < 10; j++)
+            {
+                std::cout << layers[i]->getOutput()[j] << ", ";
+                
+            }
+            std::cout << std::endl;
         }
     }
     return output;

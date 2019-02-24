@@ -35,6 +35,9 @@ private:
     float* output;
     float* workspace;
     
+    float* mean;
+    float* std;
+    
     int32_t workspaceSize;
     int32_t clipRows;
     
@@ -51,7 +54,7 @@ public:
     ~Network();
     
     // Returns pointer to the ouput
-    float *forward( const float *input );
+    float *forward( float *input );
     
     // Set row clip factor
     int32_t setClipRows( int32_t _clipRows );
