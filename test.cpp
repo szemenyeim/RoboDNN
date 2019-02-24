@@ -67,7 +67,6 @@ int main(int argc, char *argv[])
     for (fs::path & entry : images)
 	{
 		cv::Mat img = cv::imread(imPath + entry.string());
-        std::cout << imPath + entry.string() << std::endl;
         std::vector<float> in(img.rows*img.cols*3);
 		int rowoffs = 0;
 		int choffs = img.rows*img.cols;
@@ -82,22 +81,13 @@ int main(int argc, char *argv[])
 			}
 			rowoffs += img.cols;
 		}
-
-		auto start = std::chrono::high_resolution_clock::now();
+        auto start = std::chrono::high_resolution_clock::now();
         
         float *data_f = net.forward(in.data());
+        
+        auto finish = std::chrono::high_resolution_clock::now();
 
         std::vector<float> out(data_f, data_f + net.getOutCnt());
-
-		auto finish = std::chrono::high_resolution_clock::now();
-        
-        for(int i = 0; i < 10; i++)
-        {
-            std::cout << out[i] << ", ";
-            
-        }
-        std::cout << std::endl;
-        exit(0);
         
         // write file
         std::stringstream iss(entry.string());

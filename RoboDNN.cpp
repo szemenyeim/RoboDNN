@@ -245,29 +245,11 @@ int32_t Network::setClipRows( int32_t _clipRows )
 float* Network::forward( float *input )
 {
     if (!layers.empty()) {
-        for(int j = 0; j < 10; j++)
-        {
-            std::cout << input[j] << ", ";
-            
-        }
-        std::cout << std::endl;
         if (normalize)
             batchNorm(input, mean, std, ch, H*W);
-        for(int j = 0; j < 10; j++)
-        {
-            std::cout << input[j] << ", ";
-            
-        }
-        std::cout << std::endl;
         layers[0]->setInput(input);
         for (size_t i = 0; i < layers.size(); i++) {
             layers[i]->forward();
-            for(int j = 0; j < 10; j++)
-            {
-                std::cout << layers[i]->getOutput()[j] << ", ";
-                
-            }
-            std::cout << std::endl;
         }
     }
     return output;
