@@ -47,7 +47,7 @@ void readBlob( std::ifstream &file, std::vector<std::string> &vector )
     vector.clear();
     std::string str;
     while (std::getline(file, str)) {
-        if (str.empty()) {
+        if (str.size() <= 1) {
             break;
         }
         vector.push_back(str);

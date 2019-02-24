@@ -47,16 +47,39 @@ bool Network::readNetworkFromConfig(const std::string &cfgFile)
     {
         return false;
     }
-    
     // Get setings
     W = findIntOption(settings, "width", 0);
     H = findIntOption(settings, "height", 0);
     ch = findIntOption(settings, "channels", 0);
     downFactor = findIntOption(settings, "downscale", 1);
+    std::string mean = findStringOption(settings, "mean", "");
+    std::string std = findStringOption(settings, "std", "");
     
     // Sanity check
     if (W <= 0 || H <= 0 || ch <= 0) {
         return false;
+    }
+    
+    // optional normalization
+    if (!mean.empty() && !std.empty())
+    {
+        normalize = true;
+        std::vector<float> vals;
+        
+        std::string val;
+        std::stringstream iss(mean);
+        while (std::getline(iss, val, ',')) {
+            vals.push_back(std::stof(val)*255);
+        }
+        std::stringstream iss2(std);
+        while (std::getline(iss2, val, ',')) {
+            vals.push_back(255.0 * std::stof(val));
+        }
+        
+        layers.push_back( new BatchNormLayer(H, W, ch, false, NONE) );
+        static_cast<BatchNormLayer*>(layers.back())->setInplaceInput(nullptr);
+        static_cast<BatchNormLayer*>(layers.back())->setWeights(vals);
+
     }
     
     // Read all other layers
@@ -76,6 +99,7 @@ bool Network::readNetworkFromConfig(const std::string &cfgFile)
         if( currWsSize > workspaceSize )
             workspaceSize = currWsSize;
     }
+    
     if (layers.size()) {
         // Set output and create workspace
         output = layers.back()->getOutput();
@@ -95,6 +119,8 @@ void Network::constructLayer( const std::vector<std::string> & settings )
     
     // Set input options
     int32_t inputIndex = findIntOption(settings, "input", -1);
+    if( inputIndex > 0 && normalize)
+        inputIndex += 1;
     inputIndex = convertIndex( inputIndex, static_cast<int32_t>(layers.size()));
     int32_t inCh = layers.empty() || inputIndex < 0 ? ch : layers[inputIndex]->getCh();
     int32_t inW = layers.empty() || inputIndex < 0  ? W : layers[inputIndex]->getW();
@@ -109,6 +135,9 @@ void Network::constructLayer( const std::vector<std::string> & settings )
     int32_t outPad = findIntOption(settings, "outpad", 0);
     int32_t filters = findIntOption(settings, "filters", 1);
     int32_t layerIndex = findIntOption(settings, "from", 0);
+    int32_t oned = findIntOption(settings, "oned", 0);
+    if( layerIndex > 0 && normalize)
+        layerIndex += 1;
     layerIndex = convertIndex( layerIndex, static_cast<int32_t>(layers.size()), true);
     bool hasBias = findBoolOption(settings, "hasBias", true);
     bool reverse = findBoolOption(settings, "reverse", true);
@@ -147,9 +176,14 @@ void Network::constructLayer( const std::vector<std::string> & settings )
             layers.push_back( new ReorgLayer(inH, inW, inCh, stride, reverse, activation) );
             layers.back()->setInput(input);
             break;
-        case CONCAT:
+        case ROUTE:
             channelCnt = layers[layerIndex]->getCh();
-            layers.push_back( new ConcatLayer(inH, inW, inCh, channelCnt, layerIndex, activation) );
+            layers.push_back( new RouteLayer(layers[layerIndex]->getH(), layers[layerIndex]->getW(), channelCnt, layerIndex, activation) );
+            static_cast<RouteLayer*>(layers.back())->setInplaceInput(layers[layerIndex]->getOutput());
+            break;
+        case CONCAT:
+            channelCnt = oned > 0 ? layers[layerIndex]->getCh()*layers[layerIndex]->getH()*layers[layerIndex]->getW() : layers[layerIndex]->getCh();
+            layers.push_back( new ConcatLayer(inH, inW, inCh, channelCnt, oned, layerIndex, activation) );
             // Set the two inputs
             layers.back()->setInput(input);
             static_cast<ConcatLayer*>(layers.back())->setOtherInput(layers[layerIndex]->getOutput());
@@ -182,8 +216,10 @@ bool Network::loadWeights(const std::string &dir, const std::string &wFilename)
         return false;
     }
     
+    size_t first = normalize ? 1 : 0;
+    
     // Read layer weights
-    for( size_t i = 0; i < layers.size(); i++ )
+    for( size_t i = first; i < layers.size(); i++ )
     {
         if( !layers[i]->loadWeights(file) )
             return false;

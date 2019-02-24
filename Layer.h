@@ -23,6 +23,7 @@ typedef enum {
     MAXPOOL,
     AVGPOOL,
     REORG,
+    ROUTE,
     CONCAT,
     SHORTCUT,
     SOFTMAX,
@@ -54,6 +55,9 @@ inline std::string type2Str(LAYERTYPE type)
             break;
         case REORG:
             return "Reorg";
+            break;
+        case ROUTE:
+            return "Route";
             break;
         case CONCAT:
             return "Concat";

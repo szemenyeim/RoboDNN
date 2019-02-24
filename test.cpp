@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     get_all(imPath,".png",images);
 
 	// Construct net
-	Network net(config, "net.cfg", "net.weights");
+	Network net(config, "robo-down-small.cfg", "weights.dat");
 
 	std::chrono::duration<double> elapsed(0.0);
 	int imgCnt = 0;
@@ -86,15 +86,23 @@ int main(int argc, char *argv[])
         
         float *data_f = net.forward(in.data());
 
-        std::vector<float> out(data_f, data_f + sizeof(data_f)/sizeof(data_f[0]));
+        std::vector<float> out(data_f, data_f + net.getOutCnt());
 
 		auto finish = std::chrono::high_resolution_clock::now();
+        
+        // write file
+        std::stringstream iss(entry.string());
+        std::string path;
+        std::getline(iss,path,'.');
+        std::ofstream FILE(path + ".npy", std::ios::out | std::ofstream::binary);
+        std::copy(out.begin(), out.end(), std::ostreambuf_iterator<char>(FILE));
+        FILE.close();
 
 		elapsed += finish - start;
 		imgCnt++;
 	}
 
-	std::cout << "Average run time: " << elapsed.count()/imgCnt << " s\n";
+	std::cout << "Average run time: " << elapsed.count()/imgCnt*1000 << " ms\n";
 
 	return 0;
 }

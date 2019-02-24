@@ -146,6 +146,10 @@ inline LAYERTYPE getLayerType( const std::string &string )
     {
         return REORG;
     }
+    if( string.find("route") != std::string::npos )
+    {
+        return ROUTE;
+    }
     if( string.find("shortcut") != std::string::npos )
     {
         return SHORTCUT;

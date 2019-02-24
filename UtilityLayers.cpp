@@ -11,6 +11,34 @@
 #include "BLAS.h"
 #include <cmath>
 
+RouteLayer::RouteLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _layerIndex, ACTIVATION _activation)
+{
+    // Setup parameters
+    type = ROUTE;
+    inW = outW = _w;
+    inH = outH = _h;
+    inCh = outCh = _inCh;
+    layerIndex = _layerIndex;
+    activation = _activation;
+    cropRows = 0;
+}
+
+RouteLayer::~RouteLayer()
+{
+    // Outputs is not reserved, since the shortcut layer uses the previous layer's output
+}
+
+void RouteLayer::forward()
+{
+    
+}
+
+void RouteLayer::print()
+{
+    // Print layer parameters aligned
+    std::cout << "Route Layer" << std::setw(6) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") From: " << layerIndex << std::setw(12) << " -> " << act2string(activation) << std::endl;
+}
+
 ShortcutLayer::ShortcutLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, int32_t _layerIndex, ACTIVATION _activation)
 {
     // Setup parameters
@@ -97,17 +125,27 @@ void ReorgLayer::print()
     std::cout << "Reorg Layer" << std::setw(9) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ")" << std::setw(20) << " -> "  << act2string(activation) << std::endl;
 }
 
-ConcatLayer::ConcatLayer(int32_t _h, int32_t _w, int32_t _c1, int32_t _c2, int32_t _layerIndex, ACTIVATION _activation)
+ConcatLayer::ConcatLayer(int32_t _h, int32_t _w, int32_t _c1, int32_t _c2, int32_t oned, int32_t _layerIndex, ACTIVATION _activation)
 {
     // Setup parameters
     type = CONCAT;
-    inW = outW = _w;
-    inH = outH = _h;
+    inW = _w;
+    inH = _h;
     inCh = _c1;
     inCh2 = _c2;
+    if(oned)
+    {
+        outW = outH = 1;
+        outCh = inCh*inW*inH + inCh2;
+    }
+    else
+    {
+        outW = _w;
+        outH = _h;
+        outCh = _c1 + _c2;
+    }
     layerIndex = _layerIndex;
     activation = _activation;
-    outCh = _c1 + _c2;
     cropRows = 0;
     
     // Reserve outputs
@@ -126,8 +164,10 @@ void ConcatLayer::forward()
         int32_t currInH = inH - cropRows;
         int32_t currOutH = outH - getNextCropRows();
         
+        int32_t secondCnt = (outW == 1) ? inCh2 : inW*currInH*inCh2;
+        
         // Concatenate 2 inputs
-        concat(otherInput, inputs, inW*currInH*inCh, inW*currInH*inCh2, outputs);
+        concat(otherInput, inputs, inW*currInH*inCh, secondCnt, outputs);
         
         // Apply activation
         activate(outputs, currOutH*outW*outCh, activation);
@@ -202,6 +242,25 @@ bool BatchNormLayer::loadWeights( std::ifstream &file )
     if (ret)
         for (int32_t i = 0; i < outCh; i++) {
             var[i] = 1.f/(sqrtf(var[i]+.00001f));
+        }
+    
+    return ret;
+}
+
+bool BatchNormLayer::setWeights( std::vector<float> &vec )
+{
+    // Try to load means, variance and in case of affine normalization the parameters
+    bool ret = (static_cast<int>(vec.size()) == outCh*2);
+    if (ret)
+    {
+        std::copy(vec.begin(),vec.begin()+outCh,means);
+        std::copy(vec.begin()+outCh,vec.begin()+2*outCh,var);
+    }
+    
+    // Compute 1/sqrt(var) in advance
+    if (ret)
+        for (int32_t i = 0; i < outCh; i++) {
+            var[i] = 1.f/(var[i]+.00001f);
         }
     
     return ret;

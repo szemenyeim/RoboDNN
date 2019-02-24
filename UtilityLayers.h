@@ -11,6 +11,20 @@
 #include "Layer.h"
 #include "Utils.h"
 
+class RouteLayer : public Layer
+{
+private:
+    int32_t layerIndex;
+public:
+    RouteLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _layerIndex, ACTIVATION _activation);
+    ~RouteLayer();
+    void forward();
+    bool loadWeights( std::ifstream& ) {return true;}
+    void print();
+    int32_t getWorkSpaceSize() {return 0;}
+    inline void setInplaceInput( float * input ) { outputs = input; }
+};
+
 class ShortcutLayer : public Layer
 {
 private:
@@ -46,7 +60,7 @@ private:
     int32_t inCh2;
     int32_t layerIndex;
 public:
-    ConcatLayer(int32_t _h, int32_t _w, int32_t _c1, int32_t _c2, int32_t _layerIndex, ACTIVATION _activation);
+    ConcatLayer(int32_t _h, int32_t _w, int32_t _c1, int32_t _c2, int32_t oned, int32_t _layerIndex, ACTIVATION _activation);
     ~ConcatLayer();
     inline void setOtherInput( const float *input) {otherInput = input;}
     void forward();
@@ -68,6 +82,7 @@ public:
     ~BatchNormLayer();
     void forward();
     bool loadWeights( std::ifstream &file );
+    bool setWeights( std::vector<float> &vec );
     void print();
     inline void setInplaceInput( float * input ) { outputs = input; }
     int32_t getWorkSpaceSize() {return 0;}

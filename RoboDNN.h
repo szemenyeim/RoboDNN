@@ -38,9 +38,11 @@ private:
     int32_t workspaceSize;
     int32_t clipRows;
     
+    bool normalize;
+    
 public:
     
-    Network( const std::string &dir, const std::string &cfgFileName, const std::string &wFilename = "weights.dat" ): workspace(nullptr), workspaceSize(0)
+    Network( const std::string &dir, const std::string &cfgFileName, const std::string &wFilename = "weights.dat" ): workspace(nullptr), workspaceSize(0), normalize(false)
     {
         readNetworkFromConfig( dir+cfgFileName );
         loadWeights(dir, wFilename);
