@@ -1,6 +1,6 @@
 CXX=g++
-CXXFLAGS=-I . -Wall -Wextra -Ofast -MD
-CXXFLAGST=-I . -Wall -Wextra -Ofast -MD -std=c++11
+CXXFLAGS=-I . -Wall -Wextra -march=native -Ofast -MD -flto -funroll-loops
+CXXFLAGST=-I . -Wall -Wextra -march=native -Ofast -MD -std=c++11 -flto -funroll-loops
 
 BUILD = bin
 

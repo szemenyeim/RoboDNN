@@ -37,6 +37,8 @@ ConvLayer::ConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, Tupl
         bias = new float[outCh];
     }
     outputs = new float[outW*outH*outCh];
+    lut = new int32_t[outH*outW*size.x*size.y*inCh];
+    getim2colLUT(inCh, inH, inW, size, stride, padding, dilation, lut);
 }
 
 ConvLayer::~ConvLayer()
@@ -46,35 +48,38 @@ ConvLayer::~ConvLayer()
         delete [] bias;
     }
     delete [] outputs;
+    delete [] lut;
 }
 
 void ConvLayer::forward()
 {
     if (inputs)
     {
-        int32_t currInH = inH - cropRows;
-        int32_t currOutH = outH - getNextCropRows();
+        //int32_t currInH = inH - cropRows;
+        //int32_t currOutH = outH - getNextCropRows();
         
         // Compute matrix sizes
         int32_t k = size.x*size.y*inCh;
-        int32_t n = currOutH*outW;
+        int32_t n = outH*outW;
         
         // Fill output with 0
         fill(getN(), 0.f, outputs);
         
         // Convert input into a special matrix for convolution
-        im2col(inputs, inCh, currInH, inW, size, stride, padding, dilation, workspace);
+        im2colLUT(inputs, outH*outW*size.x*size.y*inCh, lut, workspace);
+        
+        //im2col(inputs, inCh, inH, inW, size, stride, padding, dilation, workspace);
         
         // Convolution as matrix multiplication
         gemm(false,false,outCh,n,k,1,weights,k,workspace,n,1,outputs,n);
         
         // Add bias
         if (hasBias) {
-            addBias(outputs, bias, outCh, currOutH*outW);
+            addBias(outputs, bias, outCh, outH*outW);
         }
         
         // Apply activation function
-        activate(outputs, currOutH*outW*outCh, activation);
+        activate(outputs, outH*outW*outCh, activation);
     }
 }
 

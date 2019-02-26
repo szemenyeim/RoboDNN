@@ -17,6 +17,11 @@ void im2col(const float* data_im,
             int32_t channels, int32_t height, int32_t width,
             Tuple ksize, Tuple stride, Tuple pad, Tuple dilation, float* data_col);
 
+void im2colLUT(const float* data_im, int32_t size, int32_t *lut, float* data_col);
+
+void getim2colLUT(int32_t channels, int32_t height, int32_t width,
+            Tuple ksize, Tuple stride, Tuple pad, Tuple dilation, int32_t* data_col);
+
 void col2im(const float* data_col,
             int32_t channels, int32_t height, int32_t width,
             Tuple ksize, Tuple stride, Tuple pad, float* data_im);

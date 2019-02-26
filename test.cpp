@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	// Construct net
 	Network net(config, "robo-down-small.cfg", "weights.dat");
 
-	std::chrono::duration<double> elapsed(0.0);
+	double elapsed = 0;
 	int imgCnt = 0;
 
     for (fs::path & entry : images)
@@ -84,10 +84,12 @@ int main(int argc, char *argv[])
         auto start = std::chrono::high_resolution_clock::now();
         
         float *data_f = net.forward(in.data());
-        
-        auto finish = std::chrono::high_resolution_clock::now();
 
         std::vector<float> out(data_f, data_f + net.getOutCnt());
+        
+        auto finish = std::chrono::high_resolution_clock::now();
+        
+        //exit(0);
         
         // write file
         std::stringstream iss(entry.string());
@@ -97,11 +99,11 @@ int main(int argc, char *argv[])
         std::copy(out.begin(), out.end(), std::ostreambuf_iterator<char>(FILE));
         FILE.close();
 
-		elapsed += finish - start;
+		elapsed += (finish - start).count() / 1000000.0;
 		imgCnt++;
 	}
 
-	std::cout << "Average run time: " << elapsed.count()/imgCnt*1000 << " ms\n";
+	std::cout << "Average run time: " << elapsed/(imgCnt) << " ms\n";
 
 	return 0;
 }

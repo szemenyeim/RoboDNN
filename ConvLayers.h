@@ -22,6 +22,7 @@ private:
     Tuple padding;
     Tuple dilation;
     bool hasBias;
+    int32_t *lut;
     
 public:
     ConvLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, Tuple _size, Tuple _stride, Tuple _padding, Tuple _dilation, ACTIVATION _activation, bool _hasBias);

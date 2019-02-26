@@ -32,6 +32,7 @@ void gemm_nn(int32_t M, int32_t N, int32_t K, float ALPHA,
              const float *B, int32_t ldb,
              float *C, int32_t ldc)
 {
+    //auto start = std::chrono::high_resolution_clock::now();
     for(int32_t i = 0; i < M; ++i){
         for(int32_t k = 0; k < K; ++k){
             float A_PART = ALPHA*A[i*lda+k];
@@ -43,6 +44,8 @@ void gemm_nn(int32_t M, int32_t N, int32_t K, float ALPHA,
             }
         }
     }
+    //auto finish = std::chrono::high_resolution_clock::now();
+    //std::cout << "GEMM: " << (finish - start).count() / 1000000.0 << std::endl;
 }
 
 // Matrix multiplication C += ALPHA*A*B^T
@@ -165,6 +168,7 @@ void im2col(const float* data_im,
             int32_t channels, int32_t height, int32_t width,
             Tuple ksize, Tuple stride, Tuple pad, Tuple dilation, float* data_col)
 {
+    //auto start = std::chrono::high_resolution_clock::now();
     int32_t height_col = (height + 2 * pad.y - (dilation.y * (ksize.y - 1) + 1)) / stride.y + 1;
     int32_t width_col = (width + 2 * pad.x - (dilation.x * (ksize.x - 1) + 1)) / stride.x + 1;
     
@@ -185,6 +189,50 @@ void im2col(const float* data_im,
             }
         }
     }
+    //auto finish = std::chrono::high_resolution_clock::now();
+    //std::cout << "Im2Col: " << (finish - start).count() / 1000000.0 << std::endl;
+}
+
+void getim2colLUT(int32_t channels, int32_t height, int32_t width,
+            Tuple ksize, Tuple stride, Tuple pad, Tuple dilation, int32_t* data_col)
+{
+    //auto start = std::chrono::high_resolution_clock::now();
+    int32_t height_col = (height + 2 * pad.y - (dilation.y * (ksize.y - 1) + 1)) / stride.y + 1;
+    int32_t width_col = (width + 2 * pad.x - (dilation.x * (ksize.x - 1) + 1)) / stride.x + 1;
+    
+    int32_t channels_col = channels * ksize.x * ksize.y;
+    for (int32_t c = 0; c < channels_col; ++c) {
+        int32_t w_offset = ( c % ksize.x )*dilation.x;
+        int32_t h_offset = ((c / ksize.x) % ksize.y)*dilation.y;
+        int32_t c_im = c / ksize.x / ksize.y;
+        for (int32_t h = 0; h < height_col; ++h) {
+            for (int32_t w = 0; w < width_col; ++w) {
+                int32_t im_row = h_offset + h * stride.y - pad.y;
+                int32_t im_col = w_offset + w * stride.x - pad.x;
+                int32_t col_index = (c * height_col + h) * width_col + w;
+                if (im_row >= 0 && im_col >= 0 && im_row < height && im_col < width)
+                    data_col[col_index] = im_col + width*(im_row + height*c_im);
+                else
+                    data_col[col_index] = -1;
+            }
+        }
+    }
+    //auto finish = std::chrono::high_resolution_clock::now();
+    //std::cout << "GetIm2Col: " << (finish - start).count() / 1000000.0 << std::endl;
+}
+
+// Matrix creation for Convolutional layers
+void im2colLUT(const float* data_im, int32_t size, int32_t *lut, float* data_col)
+{
+    //auto start = std::chrono::high_resolution_clock::now();
+    for (int32_t i = 0; i < size; i++)
+    {
+        int32_t idx = lut[i];
+        if(idx >= 0)
+            data_col[i] = data_im[idx];
+    }
+    //auto finish = std::chrono::high_resolution_clock::now();
+    //std::cout << "Im2Col: " << (finish - start).count() / 1000000.0 << std::endl;
 }
 
 // Image creation for transposed convolution
