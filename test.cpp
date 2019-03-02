@@ -98,6 +98,8 @@ int main(int argc, char *argv[])
         std::ofstream FILE(outPAth + path + ".npy", std::ios::out | std::ofstream::binary);
         std::copy(out.begin(), out.end(), std::ostreambuf_iterator<char>(FILE));
         FILE.close();
+        
+        //std::cout << "Time: " << (finish - start).count() / 1000000.0 << " ms\n";
 
 		elapsed += (finish - start).count() / 1000000.0;
 		imgCnt++;

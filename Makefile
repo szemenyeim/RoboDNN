@@ -1,6 +1,6 @@
 CXX=g++
-CXXFLAGS=-I . -Wall -Wextra -march=native -Ofast -MD -flto -funroll-loops
-CXXFLAGST=-I . -Wall -Wextra -march=native -Ofast -MD -std=c++11 -flto -funroll-loops
+CXXFLAGS=-I . -Wall -Wextra -march=native -Ofast -MD -ffast-math
+CXXFLAGST=-I . -Wall -Wextra -march=native -Ofast -MD -std=c++11 -ffast-math
 
 BUILD = bin
 
@@ -12,8 +12,8 @@ TEST = test.cpp
 
 DEPS = Activations.h BLAS.h Layer.h ConvLayers.h PoolLayers.h RoboDNN.h UtiliyLayers.h Utils.h
 
-LDFLAGS = $(BUILD)/RoboDNN.so
-LDFLAGST = -lopencv_core -lopencv_imgcodecs -lboost_filesystem -lboost_system $(BUILD)/RoboDNN.so
+LDFLAGS = -lm $(BUILD)/RoboDNN.so
+LDFLAGST = -lm -lopencv_core -lopencv_imgcodecs -lboost_filesystem -lboost_system $(BUILD)/RoboDNN.so
 
 $(BUILD)/%.o: %.cpp
 	@mkdir -p bin
