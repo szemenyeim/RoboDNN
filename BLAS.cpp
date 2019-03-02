@@ -7,6 +7,7 @@
 //
 
 #include "BLAS.h"
+#include <iostream>
 #include <cmath>
 
 // Inplace bias addition
@@ -26,14 +27,14 @@ void fill(int32_t N, float ALPHA, float *X)
 }
 
 // Matrix multiplication C += ALPHA*A*B
-void gemm_nn(int32_t M, int32_t N, int32_t K, float ALPHA,
+void gemm_nn(int32_t M, int32_t N, int32_t K,
              const float *A, int32_t lda,
              const float *B, int32_t ldb,
              float *C, int32_t ldc)
 {
     for(int32_t i = 0; i < M; ++i){
         for(int32_t k = 0; k < K; ++k){
-            float A_PART = ALPHA*A[i*lda+k];
+            float A_PART = A[i*lda+k];
             if( A_PART != 0.f )
             {
                 for(int32_t j = 0; j < N; ++j){
@@ -42,10 +43,11 @@ void gemm_nn(int32_t M, int32_t N, int32_t K, float ALPHA,
             }
         }
     }
+    
 }
 
 // Matrix multiplication C += ALPHA*A*B^T
-void gemm_nt(int32_t M, int32_t N, int32_t K, float ALPHA,
+void gemm_nt(int32_t M, int32_t N, int32_t K,
              const float *A, int32_t lda,
              const float *B, int32_t ldb,
              float *C, int32_t ldc)
@@ -54,7 +56,7 @@ void gemm_nt(int32_t M, int32_t N, int32_t K, float ALPHA,
         for(int32_t j = 0; j < N; ++j){
             float sum = 0;
             for(int32_t k = 0; k < K; ++k){
-                sum += ALPHA*A[i*lda+k]*B[j*ldb + k];
+                sum += A[i*lda+k]*B[j*ldb + k];
             }
             C[i*ldc+j] += sum;
         }
@@ -62,14 +64,14 @@ void gemm_nt(int32_t M, int32_t N, int32_t K, float ALPHA,
 }
 
 // Matrix multiplication C += ALPHA*A^T*B
-void gemm_tn(int32_t M, int32_t N, int32_t K, float ALPHA,
+void gemm_tn(int32_t M, int32_t N, int32_t K,
              const float *A, int32_t lda,
              const float *B, int32_t ldb,
              float *C, int32_t ldc)
 {
     for(int32_t i = 0; i < M; ++i){
         for(int32_t k = 0; k < K; ++k){
-            float A_PART = ALPHA*A[k*lda+i];
+            float A_PART = A[k*lda+i];
             if( A_PART != 0.f )
             {
                 for(int32_t j = 0; j < N; ++j){
@@ -81,7 +83,7 @@ void gemm_tn(int32_t M, int32_t N, int32_t K, float ALPHA,
 }
 
 // Matrix multiplication C += ALPHA*A^T*B^T
-void gemm_tt(int32_t M, int32_t N, int32_t K, float ALPHA,
+void gemm_tt(int32_t M, int32_t N, int32_t K,
              const float *A, int32_t lda,
              const float *B, int32_t ldb,
              float *C, int32_t ldc)
@@ -90,7 +92,7 @@ void gemm_tt(int32_t M, int32_t N, int32_t K, float ALPHA,
         for(int32_t j = 0; j < N; ++j){
             float sum = 0;
             for(int32_t k = 0; k < K; ++k){
-                sum += ALPHA*A[i+k*lda]*B[k+j*ldb];
+                sum += A[i+k*lda]*B[k+j*ldb];
             }
             C[i*ldc+j] += sum;
         }
@@ -98,7 +100,7 @@ void gemm_tt(int32_t M, int32_t N, int32_t K, float ALPHA,
 }
 
 // Generic Metrix Multiplication C = BETA*C + ALPHA*A^TA*B^TB
-void gemm(bool TA, bool TB, int32_t M, int32_t N, int32_t K, float ALPHA,
+void gemm(bool TA, bool TB, int32_t M, int32_t N, int32_t K,
           const float *A, int32_t lda,
           const float *B, int32_t ldb,
           float BETA,
@@ -113,13 +115,13 @@ void gemm(bool TA, bool TB, int32_t M, int32_t N, int32_t K, float ALPHA,
         }
     }
     if(!TA && !TB)
-        gemm_nn(M, N, K, ALPHA,A,lda, B, ldb,C,ldc);
+        gemm_nn(M, N, K,A,lda, B, ldb,C,ldc);
     else if(TA && !TB)
-        gemm_tn(M, N, K, ALPHA,A,lda, B, ldb,C,ldc);
+        gemm_tn(M, N, K,A,lda, B, ldb,C,ldc);
     else if(!TA && TB)
-        gemm_nt(M, N, K, ALPHA,A,lda, B, ldb,C,ldc);
+        gemm_nt(M, N, K,A,lda, B, ldb,C,ldc);
     else
-        gemm_tt(M, N, K, ALPHA,A,lda, B, ldb,C,ldc);
+        gemm_tt(M, N, K,A,lda, B, ldb,C,ldc);
 }
 
 // Affine normalization: out = gamma * (in-mean)/(sqrt(var)) + beta

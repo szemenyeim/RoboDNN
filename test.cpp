@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
         std::copy(out.begin(), out.end(), std::ostreambuf_iterator<char>(FILE));
         FILE.close();
         
-        //std::cout << "Time: " << (finish - start).count() / 1000000.0 << " ms\n";
+        //std::cout << "Time: " << (finish - start).count() / 1000000.0 << " ms\n\n";
 
 		elapsed += (finish - start).count() / 1000000.0;
 		imgCnt++;

@@ -34,25 +34,25 @@ void shortcut( int32_t w, int32_t h, int32_t ch, const float *add, float *out);
 void addBias( float *inout, const float* bias, int32_t ch, int32_t n);
 void fill(int32_t N, float ALPHA, float *X);
 
-void gemm(bool TA, bool TB, int32_t M, int32_t N, int32_t K, float ALPHA,
+void gemm(bool TA, bool TB, int32_t M, int32_t N, int32_t K,
           const float *A, int32_t lda,
           const float *B, int32_t ldb,
           float BETA,
           float *C, int32_t ldc);
 
-void gemm_nn(int32_t M, int32_t N, int32_t K, float ALPHA,
+void gemm_nn(int32_t M, int32_t N, int32_t K,
              const float *A, int32_t lda,
              const float *B, int32_t ldb,
              float *C, int32_t ldc);
-void gemm_nt(int32_t M, int32_t N, int32_t K, float ALPHA,
+void gemm_nt(int32_t M, int32_t N, int32_t K,
              const float *A, int32_t lda,
              const float *B, int32_t ldb,
              float *C, int32_t ldc);
-void gemm_tn(int32_t M, int32_t N, int32_t K, float ALPHA,
+void gemm_tn(int32_t M, int32_t N, int32_t K,
              const float *A, int32_t lda,
              const float *B, int32_t ldb,
              float *C, int32_t ldc);
-void gemm_tt(int32_t M, int32_t N, int32_t K, float ALPHA,
+void gemm_tt(int32_t M, int32_t N, int32_t K,
              const float *A, int32_t lda,
              const float *B, int32_t ldb,
              float *C, int32_t ldc);

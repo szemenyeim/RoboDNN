@@ -71,7 +71,7 @@ void ConvLayer::forward()
         //im2col(inputs, inCh, inH, inW, size, stride, padding, dilation, workspace);
         
         // Convolution as matrix multiplication
-        gemm(false,false,outCh,n,k,1,weights,k,workspace,n,1,outputs,n);
+        gemm(false,false,outCh,n,k,weights,k,workspace,n,1,outputs,n);
         
         // Add bias
         if (hasBias) {
@@ -160,7 +160,7 @@ void TransposedConvLayer::forward()
         fill(getN(), 0.f, outputs);
         
         // Transposed convolution as matrix multiplication
-        gemm(true,false,m,n,inCh,1,weights,m,inputs,n,0,workspace,n);
+        gemm(true,false,m,n,inCh,weights,m,inputs,n,0,workspace,n);
         
         // Convert output matrix into an image-like array
         col2im(workspace, outCh, currOutH, outW, size, stride, padding, outputs);
@@ -238,7 +238,7 @@ void FCLayer::forward()
         fill(getN(), 0.f, outputs);
         
         // Convolution as matrix multiplication
-        gemm(false,false,outCh,1,inCh,1,weights,inCh,inputs,1,1,outputs,1);
+        gemm(false,false,outCh,1,inCh,weights,inCh,inputs,1,1,outputs,1);
         
         // Add bias
         if (hasBias) {
