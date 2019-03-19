@@ -74,8 +74,10 @@ void MaxPoolLayer::forward()
 
 void MaxPoolLayer::print()
 {
+#ifndef NN_SILENT
     // Print layer parameters aligned
     std::cout << "Max Pooling:" << std::setw(8) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size.x << "x" << size.y << ")" << std::setw(8) << " -> " << act2string(activation) << std::endl;
+#endif
 }
 
 AvgPoolLayer::AvgPoolLayer(int32_t _h, int32_t _w, int32_t _outCh, Tuple _size, Tuple _stride, ACTIVATION _activation)
@@ -145,6 +147,8 @@ void AvgPoolLayer::forward()
 
 void AvgPoolLayer::print()
 {
+#ifndef NN_SILENT
     // Print layer parameters aligned
     std::cout << "Avg Pooling:" << std::setw(8) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size.x << "x" << size.y << ")" << std::setw(8) << " -> " << act2string(activation) << std::endl;
+#endif
 }

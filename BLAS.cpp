@@ -7,7 +7,6 @@
 //
 
 #include "BLAS.h"
-#include <iostream>
 #include <cmath>
 
 // Inplace bias addition

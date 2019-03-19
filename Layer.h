@@ -8,6 +8,7 @@
 
 #ifndef Layer_h
 #define Layer_h
+#define NN_SILENT
 
 #include <cstdint>
 #include <vector>

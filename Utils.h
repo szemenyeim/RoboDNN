@@ -9,6 +9,7 @@
 #ifndef Utils_h
 #define Utils_h
 
+#include <cstdio>
 #include <cstdint>
 #include <cstdlib>
 #include <string>

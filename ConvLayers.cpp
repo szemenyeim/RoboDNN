@@ -93,8 +93,10 @@ bool ConvLayer::loadWeights( std::ifstream &file )
 
 void ConvLayer::print()
 {
+#ifndef NN_SILENT
     // Print parameters in a nice aligned way
     std::cout << "Convolutional" << std::setw(7) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size.x << "x" << size.y << ") * (" << dilation.x << "," << dilation.y << ") -> " << act2string(activation) << std::endl;
+#endif
 }
 
 int32_t ConvLayer::getWorkSpaceSize()
@@ -185,8 +187,10 @@ bool TransposedConvLayer::loadWeights( std::ifstream &file )
 
 void TransposedConvLayer::print()
 {
+#ifndef NN_SILENT
     // Print parameters in a nice aligned way
     std::cout << "Tr Convolutional" << std::setw(4) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Size: (" << size .x<< "x" << size.y << ")" << std::setw(8) << " -> " << act2string(activation) << std::endl;
+#endif
 }
 
 int32_t TransposedConvLayer::getWorkSpaceSize()
@@ -260,8 +264,10 @@ bool FCLayer::loadWeights( std::ifstream &file )
 
 void FCLayer::print()
 {
+#ifndef NN_SILENT
     // Print parameters in a nice aligned way
     std::cout << "Fully Connected" << std::setw(7) << "(" << std::setw(3) << inCh << ")->(" << std::setw(3) << outCh << ")" << " -> " << act2string(activation) << std::endl;
+#endif
 }
 
 int32_t FCLayer::getWorkSpaceSize()

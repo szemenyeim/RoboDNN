@@ -3,109 +3,82 @@
 #include <cmath>
 #include "Utils.h"
 #include "RoboDNN.h"
-#include <boost/filesystem.hpp>
-#include <opencv2/opencv.hpp>
-#include <chrono>
+#include <ctime>
 
-namespace fs = ::boost::filesystem;
-
-void get_all(const fs::path& root, const std::string& ext, std::vector<fs::path>& ret)
+int main()
 {
-    if(!fs::exists(root) || !fs::is_directory(root)) return;
-    
-    fs::recursive_directory_iterator it(root);
-    fs::recursive_directory_iterator endit;
-    
-    while(it != endit)
+    // Create random image
+    int imgCnt = 1000;
+    int W = 512, H = 384;
+    std::vector<float> in(W*H*3);
+    int rowoffs = 0;
+    int choffs = W*H;
+    for (int i = 0; i < H; i++)
     {
-        if(fs::is_regular_file(*it) && it->path().extension() == ext) ret.push_back(it->path().filename());
-        ++it;
-        
+        for (int j = 0; j < W; j++)
+        {
+            in[rowoffs + j] = rand()%255;
+            in[choffs + rowoffs + j] = rand()%255;
+            in[2*choffs + rowoffs + j] =  rand()%255;
+        }
+        rowoffs += W;
     }
     
-}
+    float runs[4];
+    
+    for (int j = 0; j < 4; j++) {
+        std::cout << "Running net " << j << std::endl;
+        std::string cfg = "robo.cfg";
+        if(j==3)
+            cfg = "robo2C.cfg";
+        std::string weight = "";
+        switch (j) {
+            case 0:
+                weight = "weightsFT.dat";
+                break;
+            case 1:
+                weight = "weights88.dat";
+                break;
+            case 2:
+                weight = "weights93.dat";
+                break;
+            case 3:
+                weight = "weights2C.dat";
+                break;
+                
+            default:
+                break;
+        }
+        // Construct net
+        Network net("config/", cfg, weight);
 
-int main(int argc, char *argv[])
-{
+        double elapsed = 0;
 
-	// Arguments
-	if (argc < 5)
-	{
-		std::cout << "To run this program, pass all the following arguments: ./test <segment/detect> <config-file-dir> <image-folder> <output-folder>" << std::endl;
-		return -1;
-	}
+        for (int i = 0; i < imgCnt; i++)
+        {
+            
+            clock_t start = clock();
+            
+            float *data_f = net.forward(in.data());
 
-	std::string config = argv[2];
-	std::string imPath = argv[3];
-	std::string outPAth = argv[4];
+            std::vector<float> out(data_f, data_f + net.getOutCnt());
+            
+            clock_t finish = clock();
+            
+            //std::cout << "Time: " << (finish - start).count() / 1000000.0 << " ms\n\n";
 
-	std::string detS = "detect";
-	std::string segS = "segment";
-	bool detect = false;
+            elapsed += double(finish - start) / CLOCKS_PER_SEC * 1000.0;
+        }
 
-	if (detS.compare(argv[1]) == 0)
-	{
-		detect = true;
-	}
-	else if (segS.compare(argv[1]) != 0)
-	{
-		std::cout << "Please pass either \"detect\" or \"segment\" as the first argument!" << std::endl;
-		return -1;
-	}
+        runs[j] = elapsed/(imgCnt);
+    }
+    
+    std::cout << "Results" << std::endl;
+    std::cout << runs[0] << std::endl;
+    std::cout << runs[1] << std::endl;
+    std::cout << runs[2] << std::endl;
+    std::cout << runs[3] << std::endl;
 
-	// Read images
-    std::vector<fs::path> images;
-
-    get_all(imPath,".png",images);
-
-	// Construct net
-	Network net(config, "robo-down-small.cfg", "weights.dat");
-
-	double elapsed = 0;
-	int imgCnt = 0;
-
-    for (fs::path & entry : images)
-	{
-		cv::Mat img = cv::imread(imPath + entry.string());
-        std::vector<float> in(img.rows*img.cols*3);
-		int rowoffs = 0;
-		int choffs = img.rows*img.cols;
-		for (int i = 0; i < img.rows; i++)
-		{
-			for (int j = 0; j < img.cols; j++)
-			{
-				cv::Vec3b px = img.at<cv::Vec3b>(i, j);
-				in[rowoffs + j] = px[2];
-				in[choffs + rowoffs + j] = px[1];
-				in[2*choffs + rowoffs + j] = px[0];
-			}
-			rowoffs += img.cols;
-		}
-        auto start = std::chrono::high_resolution_clock::now();
-        
-        float *data_f = net.forward(in.data());
-
-        std::vector<float> out(data_f, data_f + net.getOutCnt());
-        
-        auto finish = std::chrono::high_resolution_clock::now();
-        
-        //exit(0);
-        
-        // write file
-        std::stringstream iss(entry.string());
-        std::string path;
-        std::getline(iss,path,'.');
-        std::ofstream FILE(outPAth + path + ".npy", std::ios::out | std::ofstream::binary);
-        std::copy(out.begin(), out.end(), std::ostreambuf_iterator<char>(FILE));
-        FILE.close();
-        
-        //std::cout << "Time: " << (finish - start).count() / 1000000.0 << " ms\n\n";
-
-		elapsed += (finish - start).count() / 1000000.0;
-		imgCnt++;
-	}
-
-	std::cout << "Average run time: " << elapsed/(imgCnt) << " ms\n";
 
 	return 0;
 }

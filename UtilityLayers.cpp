@@ -36,7 +36,9 @@ void RouteLayer::forward()
 void RouteLayer::print()
 {
     // Print layer parameters aligned
+#ifndef NN_SILENT
     std::cout << "Route Layer" << std::setw(6) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") From: " << layerIndex << std::setw(12) << " -> " << act2string(activation) << std::endl;
+#endif
 }
 
 ShortcutLayer::ShortcutLayer(int32_t _h, int32_t _w, int32_t _inCh, int32_t _outCh, int32_t _layerIndex, ACTIVATION _activation)
@@ -74,8 +76,10 @@ void ShortcutLayer::forward()
 
 void ShortcutLayer::print()
 {
+#ifndef NN_SILENT
     // Print layer parameters aligned
     std::cout << "Shortcut Layer" << std::setw(6) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") From: " << layerIndex << std::setw(12) << " -> " << act2string(activation) << std::endl;
+#endif
 }
 
 ReorgLayer::ReorgLayer(int32_t _h, int32_t _w, int32_t _inCh, Tuple _stride, bool _reverse, ACTIVATION _activation)
@@ -121,8 +125,10 @@ void ReorgLayer::forward()
 
 void ReorgLayer::print()
 {
+#ifndef NN_SILENT
     // Print layer parameters aligned
     std::cout << "Reorg Layer" << std::setw(9) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ")" << std::setw(20) << " -> "  << act2string(activation) << std::endl;
+#endif
 }
 
 ConcatLayer::ConcatLayer(int32_t _h, int32_t _w, int32_t _c1, int32_t _c2, int32_t oned, int32_t _layerIndex, ACTIVATION _activation)
@@ -176,8 +182,10 @@ void ConcatLayer::forward()
 
 void ConcatLayer::print()
 {
+#ifndef NN_SILENT
     // Print layer parameters aligned
     std::cout << "Concat Layer" << std::setw(8) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << "), From: " << layerIndex << std::setw(11) << " -> " << act2string(activation) << std::endl;
+#endif
 }
 
 BatchNormLayer::BatchNormLayer(int32_t _h, int32_t _w, int32_t _outCh, bool _affine, ACTIVATION _activation)
@@ -268,8 +276,10 @@ bool BatchNormLayer::setWeights( std::vector<float> &vec )
 
 void BatchNormLayer::print()
 {
+#ifndef NN_SILENT
     // Print layer parameters aligned
     std::cout << "Normalization" << std::setw(7) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ") Affine: " << (affine?"Y":"N") << std::setw(10) << " -> "  << act2string(activation) << std::endl;
+#endif
 }
 
 SoftMaxLayer::SoftMaxLayer(int32_t _h, int32_t _w, int32_t _outCh)
@@ -304,8 +314,10 @@ void SoftMaxLayer::forward()
 
 void SoftMaxLayer::print()
 {
+#ifndef NN_SILENT
     // Print layer parameters aligned
     std::cout << "Softmax" << std::setw(13) << "(" << std::setw(3) << inCh << " x " << std::setw(3) << inW << " x " << std::setw(3) << inH << ")->(" << std::setw(3) << outCh << " x " << std::setw(3) << outW << " x " << std::setw(3) << outH << ")" << std::endl;
+#endif
 }
 
 
