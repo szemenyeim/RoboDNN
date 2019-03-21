@@ -8,7 +8,7 @@
 int main()
 {
     // Create random image
-    int imgCnt = 1000;
+    int imgCnt = 100;
     int W = 512, H = 384;
     std::vector<float> in(W*H*3);
     int rowoffs = 0;
