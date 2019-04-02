@@ -25,7 +25,7 @@ void ReLU( float *inout, int32_t N )
 void sigmoid( float *inout, int32_t N )
 {
     for (int32_t i = 0; i < N; i++) {
-        inout[i] = 1.f/(1.f + /*expf*/(inout[i]));
+        inout[i] = 1.f/(1.f + expf(inout[i]));
     }
 }
 
@@ -54,7 +54,7 @@ void softmax(const float *input, int32_t N, int32_t channels, float *output)
     for (int32_t i = 0; i < chLimit; i++) {
         float sum = 0;
         for (int32_t n = 0; n < channels; n++) {
-            output[ n*chLimit + i ] = /*expf*/(input[ n*chLimit + i ]);
+            output[ n*chLimit + i ] = expf(input[ n*chLimit + i ]);
             sum += output[ n*chLimit + i ];
         }
         for (int32_t n = 0; n < channels; n++) {
