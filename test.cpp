@@ -30,7 +30,7 @@ int main()
         std::cout << "Running net " << j << std::endl;
         std::string cfg = "robo.cfg";
         if(j==3)
-            cfg = "robo2C.cfg";
+            cfg = "robo-hr.cfg";
         std::string weight = "";
         switch (j) {
             case 0:
@@ -43,7 +43,7 @@ int main()
                 weight = "weights93.dat";
                 break;
             case 3:
-                weight = "weights2C.dat";
+                weight = "weights93.dat";
                 break;
                 
             default:
