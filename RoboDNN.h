@@ -26,6 +26,8 @@ private:
     // Maximum downscale factor
     int32_t downFactor;
     
+    int32_t index;
+    
     // Loaders
     bool readNetworkFromConfig( const std::string &cfgFile );
     bool loadWeights( const std::string &dir, const std::string &wFilename );
@@ -45,7 +47,7 @@ private:
     
 public:
     
-    Network( const std::string &dir, const std::string &cfgFileName, const std::string &wFilename = "weights.dat" ): workspace(nullptr), workspaceSize(0), normalize(false)
+    Network( const std::string &dir, const std::string &cfgFileName, const std::string &wFilename = "weights.dat" ): index(0), workspace(nullptr), workspaceSize(0), normalize(false)
     {
         readNetworkFromConfig( dir+cfgFileName );
         loadWeights(dir, wFilename);

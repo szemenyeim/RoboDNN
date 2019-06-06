@@ -173,7 +173,7 @@ void ConcatLayer::forward()
         int32_t secondCnt = (outW == 1) ? inCh2 : inW*currInH*inCh2;
         
         // Concatenate 2 inputs
-        concat(otherInput, inputs, inW*currInH*inCh, secondCnt, outputs);
+        concat(otherInput, inputs, secondCnt, inW*currInH*inCh, outputs);
         
         // Apply activation
         activate(outputs, currOutH*outW*outCh, activation);

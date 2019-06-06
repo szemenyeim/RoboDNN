@@ -126,6 +126,10 @@ void Network::constructLayer( const std::vector<std::string> & settings )
     // Read layer type
     LAYERTYPE type = getLayerType(settings[0]);
     
+#ifndef NN_SILENT
+    std::cout << index++ << " ";
+#endif
+    
     // Set input options
     int32_t inputIndex = findIntOption(settings, "input", -1);
     inputIndex = convertIndex( inputIndex, static_cast<int32_t>(layers.size()));

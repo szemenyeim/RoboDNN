@@ -12,7 +12,6 @@
 // Inplace activations:
 // N is the total number of elements to activate
 
-
 void ReLU( float *inout, int32_t N )
 {
     for (int32_t i = 0; i < N; i++) {
